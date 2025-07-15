@@ -85,7 +85,20 @@ Construisez votre image avec un tag approprié pour GitHub Container Registry.
 - N'oubliez pas de mapper le port 5000
 - Testez avec `curl http://localhost:5000`
 
-## Étape 5 : Configurer l'authentification GitHub
+## Étape 5 : Analyser les logs du container
+
+Une fois votre container lancé, examinez ses logs pour vérifier qu'il fonctionne correctement.
+
+**Commandes à utiliser** :
+- `docker logs` pour voir les logs du container
+- `docker logs -f` pour suivre les logs en temps réel
+
+**Indices** :
+- Utilisez `docker ps` pour trouver l'ID ou le nom du container
+- Les logs de Flask devraient montrer le démarrage du serveur
+- Vous devriez voir les requêtes HTTP quand vous testez avec curl
+
+## Étape 6 : Configurer l'authentification GitHub
 
 ### Créer un Personal Access Token
 
@@ -107,13 +120,13 @@ Construisez votre image avec un tag approprié pour GitHub Container Registry.
 
 **Documentation complète** : [Working with the Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-with-a-personal-access-token-classic)
 
-## Étape 6 : Publier l'image
+## Étape 7 : Publier l'image
 
 **Commande à utiliser** : `docker push`
 
 **Indice** : Utilisez le même tag que celui utilisé pour la construction.
 
-## Étape 7 : Vérification
+## Étape 8 : Vérification
 
 1. Allez sur votre profil GitHub → Packages
 2. Vérifiez que votre package `zero-to-hero` apparaît

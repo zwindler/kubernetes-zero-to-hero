@@ -105,10 +105,9 @@ Note : Il existe des solution de type microVMs qui peuvent être un entre deux i
 
 ## Dockerfile : La recette 📝
 
-- Write an install.sh script that works for you
-- Turn this file into a Dockerfile, test it on your machine
-- If the Dockerfile builds on your machine, it will build anywhere
-
+- On créé un Dockerfile comme on écrirait un script d'installation
+- Des opérations basiques sont listées (FROM, COPY, etc)
+- L'ensemble de ces instructions donne une *image Docker*
 
 
 ```dockerfile
@@ -119,6 +118,46 @@ RUN npm install
 COPY . .
 EXPOSE 3000
 CMD ["npm", "start"]
+```
+
+---
+
+## Système de fichiers en couches
+
+Docker utilise un **système de fichiers en couches** (layered FS) :
+
+- Chaque instruction du Dockerfile = une **couche** (layer)
+- Les couches sont **empilées** et **immuables**
+- **Réutilisation** : les images peuvent partager des couches communes
+- **Optimisation** : seules les couches modifiées sont re-téléchargées
+
+```
+┌─────────────────┐ ← Couche application  (RW)  ^
+├─────────────────┤ ← COPY . .            (RO)  |
+├─────────────────┤ ← RUN npm install     (RO)  | de bas en haut
+├─────────────────┤ ← COPY package.json   (RO)  |
+└─────────────────┘ ← FROM node:22-alpine (RO)  |
+```
+
+---
+
+## Exemple : `docker pull` avec plusieurs couches
+
+```bash
+$ docker pull nginx:latest
+latest: Pulling from library/nginx
+31b3f1ad4ce1: Pulling fs layer
+fd42b079d0f8: Pulling fs layer  
+18f4ffdd1b9d: Pulling fs layer
+18f4ffdd1b9d: Waiting
+fd42b079d0f8: Download complete
+31b3f1ad4ce1: Download complete
+18f4ffdd1b9d: Download complete
+31b3f1ad4ce1: Pull complete
+fd42b079d0f8: Pull complete
+18f4ffdd1b9d: Pull complete
+Digest: sha256:67f9a4f10d147a6e04629340e6493c9703300ca23a2f7f3aa56fe615d75d31ca
+Status: Downloaded newer image for nginx:latest
 ```
 
 ---
