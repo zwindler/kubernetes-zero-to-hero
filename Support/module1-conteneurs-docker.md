@@ -41,7 +41,14 @@ blockquote:after{
 
 ## Sommaire du Module 1
 
-TODO 
+- Qu'est-ce qu'un conteneur ?
+- Conteneurs vs Machines Virtuelles
+- Cas d'usage de la conteneurisation
+- Docker : démocratiser les containers
+- Dockerfile : écrire des recettes
+- Commandes Docker essentielles
+- Docker Registry : stockage d'images
+- **TP pratique** : Créer et publier votre image
 
 ![bg fit right:30%](binaries/container.png)
 
