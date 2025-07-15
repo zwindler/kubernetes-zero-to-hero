@@ -1,0 +1,202 @@
+name: Build Marp to HTML
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'Support/**/*.md'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'Support/**/*.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install Marp CLI
+        run: npm install -g @marp-team/marp-cli@latest
+
+      - name: Create output directory
+        run: mkdir -p dist
+
+      - name: Copy binaries directory
+        run: |
+          if [ -d "Support/binaries" ]; then
+            cp -r Support/binaries dist/
+          fi
+
+      - name: Build Marp presentations
+        run: |
+          # Find all .md files in Support directory
+          find Support -name "*.md" -type f | while read file; do
+            echo "Processing: $file"
+            filename=$(basename "$file" .md)
+            
+            # Build HTML with Marp
+            npx marp "$file" --html --output "dist/${filename}.html"
+            
+            echo "Generated: dist/${filename}.html"
+          done
+
+      - name: Create index.html
+        run: |
+          cat > dist/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="fr">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Formation Kubernetes - Débutant à Avancé</title>
+              <style>
+                  body {
+                      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                      max-width: 800px;
+                      margin: 0 auto;
+                      padding: 2rem;
+                      background-color: #fefefe;
+                      color: #333;
+                  }
+                  h1 {
+                      color: #2c3e50;
+                      border-bottom: 3px solid #3498db;
+                      padding-bottom: 0.5rem;
+                  }
+                  .module-list {
+                      list-style: none;
+                      padding: 0;
+                  }
+                  .module-item {
+                      background: #f8f9fa;
+                      margin: 1rem 0;
+                      padding: 1.5rem;
+                      border-radius: 8px;
+                      border-left: 4px solid #3498db;
+                      transition: transform 0.2s ease;
+                  }
+                  .module-item:hover {
+                      transform: translateX(5px);
+                      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                  }
+                  .module-link {
+                      text-decoration: none;
+                      color: #2c3e50;
+                      font-weight: 500;
+                      font-size: 1.1rem;
+                  }
+                  .module-link:hover {
+                      color: #3498db;
+                  }
+                  .description {
+                      margin-top: 0.5rem;
+                      color: #666;
+                      font-size: 0.9rem;
+                  }
+                  .footer {
+                      margin-top: 3rem;
+                      padding-top: 2rem;
+                      border-top: 1px solid #eee;
+                      text-align: center;
+                      color: #666;
+                  }
+              </style>
+          </head>
+          <body>
+              <h1>🚀 Formation Kubernetes - Débutant à Avancé</h1>
+              
+              <p>Bienvenue dans cette formation complète Kubernetes ! Voici les modules disponibles :</p>
+              
+              <ul class="module-list">
+          EOF
+          
+          # Add links to all HTML files (except index.html)
+          for file in dist/*.html; do
+            if [ "$(basename "$file")" != "index.html" ]; then
+              filename=$(basename "$file" .html)
+              case "$filename" in
+                module1*)
+                  description="Introduction aux conteneurs et Docker"
+                  ;;
+                module2*)
+                  description="Architecture et concepts de base Kubernetes"
+                  ;;
+                module3*)
+                  description="Pods, Deployments, Services et ressources fondamentales"
+                  ;;
+                module4*)
+                  description="Administration, monitoring et observabilité"
+                  ;;
+                module5*)
+                  description="CNI et CSI - réseau avec Cilium, stockage avec Rook Ceph"
+                  ;;
+                module6*)
+                  description="RBAC, Kyverno, Falco et bonnes pratiques de sécurité"
+                  ;;
+                module7*)
+                  description="Helm et Kustomize pour l'industrialisation"
+                  ;;
+                module8*)
+                  description="GitOps et déploiement continu avec Argo CD"
+                  ;;
+                *)
+                  description="Module de formation Kubernetes"
+                  ;;
+              esac
+              
+              echo "                <li class=\"module-item\">" >> dist/index.html
+              echo "                    <a href=\"${filename}.html\" class=\"module-link\">${filename}</a>" >> dist/index.html
+              echo "                    <div class=\"description\">${description}</div>" >> dist/index.html
+              echo "                </li>" >> dist/index.html
+            fi
+          done
+          
+          cat >> dist/index.html << 'EOF'
+              </ul>
+              
+              <div class="footer">
+                  <p>Formation créée par <strong>Denis Germain</strong></p>
+                  <p>Généré automatiquement avec Marp CLI</p>
+              </div>
+          </body>
+          </html>
+          EOF
+
+      - name: List generated files
+        run: |
+          echo "Generated files:"
+          ls -la dist/
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
