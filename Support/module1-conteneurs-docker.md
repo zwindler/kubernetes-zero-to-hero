@@ -62,7 +62,7 @@ Ensemble de techniques qui vont permettre d'**isoler** un processus des autres p
 
 Il existe plein de technos de containers : Docker est "juste" l'outil que les a popularisé.
 
-* voir aussi : [jail BSD](https://docs.freebsd.org/en/books/handbook/jails/), [zone Solaris](https://docs.oracle.com/cd/E19253-01/820-2318/zones.intro-1/index.html), [openVZ](https://openvz.org/), [LXC](https://linuxcontainers.org/), ...
+- voir aussi : [jail BSD](https://docs.freebsd.org/en/books/handbook/jails/), [zone Solaris](https://docs.oracle.com/cd/E19253-01/820-2318/zones.intro-1/index.html), [openVZ](https://openvz.org/), [LXC](https://linuxcontainers.org/), ...
 
 ---
 
@@ -93,7 +93,7 @@ Note : Il existe des solution de type microVMs qui peuvent être un entre deux i
 
 ## Docker : démocratise les containers linux
 
-* [dotScale 2013 - Solomon Hykes - Why we built Docker](https://www.youtube.com/watch?v=3N3n9FzebAA)
+- [dotScale 2013 - Solomon Hykes - Why we built Docker](https://www.youtube.com/watch?v=3N3n9FzebAA)
 
 - **Engine** : Runtime de conteneurs ([cgroups, namespaces](https://www.youtube.com/watch?v=sK5i-N34im8))
 - **Images** : Templates pour les conteneurs
