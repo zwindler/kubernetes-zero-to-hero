@@ -60,38 +60,42 @@ blockquote:after{
 
 Ensemble de techniques qui vont permettre d'**isoler** un processus des autres processus, du système de fichiers et des ressources de l'hôte.
 
-Il existe plein de technos de containers : Docker est "juste" la plus populaire.
+Il existe plein de technos de containers : Docker est "juste" l'outil que les a popularisé.
+
+* voir aussi : [jail BSD](https://docs.freebsd.org/en/books/handbook/jails/), [zone Solaris](https://docs.oracle.com/cd/E19253-01/820-2318/zones.intro-1/index.html), [openVZ](https://openvz.org/), [LXC](https://linuxcontainers.org/), ...
 
 ---
 
 ## Quelques différences containers vs VMs
 
-- démarrage rapide (par de matériel à émuler / d'OS à démarrer)
-- consommation souvent plus faible qu'une VM (ça dépend)
-- partage du kernel (problématique pour certaines apps)
-- isolation plus faible (sécurité ---)
-- **immuabilité**
+- ➕ démarrage rapide (pas de matériel à émuler / d'OS à démarrer)
+- ➕ consommation souvent plus faible qu'une VM (ça dépend)
+- ➖ partage du kernel (problématique pour certaines apps)
+- ➖ isolation plus faible (sécurité ---)
+- ⚖️ **immuabilité**
+
+Note : Il existe des solution de type microVMs qui peuvent être un entre deux intéressant (ex : [Firecracker](https://firecracker-microvm.github.io/))
 
 ---
 
 ## Cas où la conteneurisation brille ✨
 
-- **Microservices** : meilleure mutualisation des ressources
-- Apps **stateless**
+- **Microservices** : mutualisation des ressources d'un hôte
+- Apps **stateless** (mise à l'échelle simple)
 - **DevXP** : plus simple de construire un container qu'une VM
-- Format *unique*
+- Package *unique* censé fonctionner "partout"
 
 > *"Build once, run anywhere"* 🚀
 
-![bg fit right:30%](binaries/itworks.jpg)
+![bg fit right:27%](binaries/itworks.jpg)
 
 ---
 
-## Docker : démocratiser les containers pour les nuls
+## Docker : démocratise les containers linux
 
-2014 : arrivée de ![height:50](binaries/docker.png)
+* [dotScale 2013 - Solomon Hykes - Why we built Docker](https://www.youtube.com/watch?v=3N3n9FzebAA)
 
-- **Engine** : Runtime de conteneurs (cgroups, namespaces)
+- **Engine** : Runtime de conteneurs ([cgroups, namespaces](https://www.youtube.com/watch?v=sK5i-N34im8))
 - **Images** : Templates pour les conteneurs
 - **Registry** : Stockage d'images (Docker Hub)
 - **Compose** : Orchestration simple
@@ -160,7 +164,7 @@ docker rmi <image-id>
 
 ## Docker Registry : Le magasin d'images
 
-- **Docker Hub** : Registry public par défaut
+- **[Docker Hub](https://hub.docker.com/)** : Registry public par défaut (payant sauf pour les individus et certains projets OSS)
 - **Registry privé** : Pour vos images internes
 - **Push/Pull** : Partage d'images
 
@@ -172,8 +176,6 @@ docker push mon-registry/mon-app:v1.0
 docker pull nginx:latest
 ```
 
-![bg fit right:25%](binaries/docker.png)
-
 ---
 
 <!-- _class: lead -->
@@ -182,9 +184,7 @@ docker pull nginx:latest
 
 ---
 
-## Objectif du TP
-
-**Créer et publier votre propre image Docker**
+## Objectif du TP : créer et publier votre propre image Docker
 
 A partir d'un serveur web Python simple :
 
@@ -193,7 +193,19 @@ A partir d'un serveur web Python simple :
 3. La lancer en local
 4. La publier sur GitHub Container Registry
 
-Allez dans le dossier **TP/1/instructions/**
+Allez dans le dossier `TP/1/instructions/`
+
+---
+
+## Desktop, Compose, Swarm
+
+Quelques outils supplémentaires développé par Docker Inc.
+
+- [**Docker Desktop** - Interface graphique pour développeurs (Windows/Mac)](https://www.docker.com/products/docker-desktop/)
+- [**Compose : multi-conteneurs avec YAML** - `docker-compose up`](https://docs.docker.com/compose/)
+- [**Swarm : mlustering natif Docker** - Alternative basique à Kubernetes](https://docs.docker.com/engine/swarm/)
+
+> K8s reste **le** standard pour l'orchestration de containers
 
 ---
 
@@ -209,5 +221,7 @@ Allez dans le dossier **TP/1/instructions/**
 
 ## Bibliographie
 
-* [Introduction to Docker and Containers](https://qconsf2017intro.container.training/#1)
-* [github.com/jpetazzo/container.training](https://github.com/jpetazzo/container.training)
+- [dotScale 2013 - Solomon Hykes - Why we built Docker](https://www.youtube.com/watch?v=3N3n9FzebAA)
+- [DockerCon EU 2021 - Jérôme Petazzoni - Cgroups, namespaces, and beyond: what are containers made from?](https://www.youtube.com/watch?v=sK5i-N34im8)
+- [Introduction to Docker and Containers](https://qconsf2017intro.container.training/#1)
+- [github.com/jpetazzo/container.training](https://github.com/jpetazzo/container.training)
