@@ -58,17 +58,17 @@ blockquote:after{
 
 Ensemble de techniques qui vont permettre d'**isoler** un processus des autres processus, du système de fichiers et des ressources de l'hôte.
 
-Il existe plein de technos de containers : Docker est "juste" l'outil que les a popularisé.
+Il existe plein de technos pour isoler un processus : Docker est "juste" l'outil que a popularisé les containers Linux.
 
-- voir aussi : [jail BSD](https://docs.freebsd.org/en/books/handbook/jails/), [zone Solaris](https://docs.oracle.com/cd/E19253-01/820-2318/zones.intro-1/index.html), [openVZ](https://openvz.org/), [LXC](https://linuxcontainers.org/), ...
+- voir aussi : [jail BSD](https://docs.freebsd.org/en/books/handbook/jails/), [zone Solaris](https://docs.oracle.com/cd/E19253-01/820-2318/zones.intro-1/index.html), [openVZ](https://openvz.org/), [LXC](https://linuxcontainers.org/), [container](https://learn.microsoft.com/fr-fr/virtualization/windowscontainers/about/) ![height:35](binaries/windows.png), [WASM](https://www.cncf.io/blog/2024/03/12/webassembly-on-kubernetes-from-containers-to-wasm-part-01/), ...
 
 ---
 
 ## Quelques différences containers vs VMs
 
-- ➕ démarrage rapide (pas de matériel à émuler / d'OS à démarrer)
-- ➕ consommation souvent plus faible qu'une VM (ça dépend)
-- ➖ partage du kernel (problématique pour certaines apps)
+- ➕ démarrage rapide (pas de matériel à émuler ou d'OS à démarrer)
+- ➕ consommation souvent plus faible qu'une VM (*ça dépend*)
+- ➖ partage du kernel (parfois problématique selon l'app)
 - ➖ isolation plus faible (sécurité ---)
 - ⚖️ **immuabilité**
 
@@ -152,7 +152,7 @@ Ou via `apt` : [docs.docker.com/engine/install/ubuntu/#install-using-the-reposit
 alias docker=podman
 ```
 
-> Pour cette formation : Docker Desktop ou Podman suffisent
+> Pour ce module : Docker Desktop ou Podman suffisent
 
 ---
 
@@ -174,11 +174,11 @@ Docker utilise un **système de fichiers en couches** (layered FS) :
 ┌─────────────────┐
 |     couche 5    | ← Couche application  (RW)  ^
 ┌─────────────────┤                             |
-|     couche 4    | ← COPY . .            (RO)  |
+|     couche 4    | ← COPY . .                  |
 ├─────────────────┤                             |
-|     couche 3    | ← RUN npm install     (RO)  |
+|     couche 3    | ← RUN npm install           |
 ├─────────────────┤                             |
-|     couche 2    | ← COPY package.json   (RO)  |
+|     couche 2    | ← COPY package.json         |
 ├─────────────────┤                             |
 |     couche 1    | ← FROM node:22-alpine (RO)  |
 └─────────────────┘
@@ -228,14 +228,14 @@ Status: Downloaded newer image for nginx:latest
 
 ```bash
 # Lancer un conteneur qui liste le répertoire courant
-$ docker run -v $(pwd):/workspace ubuntu:22.04 ls -la /workspace
+$ docker run -v $(pwd):/app ubuntu:22.04 ls -la /app
 total 16
 -rw-r--r-- 1 root root 1234 Jul 16 10:30 README.md
 drwxr-xr-x 3 root root   96 Jul 16 10:30 Support
 drwxr-xr-x 3 root root   96 Jul 16 10:30 TP
 ```
 
-> `-v $(pwd):/workspace` = partage le répertoire courant dans `/workspace`
+> `-v $(pwd):/app` = répertoire courant monté dans `/app`
 
 Utile pour utiliser un binaire sans l'installer
 
