@@ -73,7 +73,7 @@ blockquote:after{
 - **Infrastructure as Code** avec des APIs et du YAML
 - **Extensibilité** pour s'adapter à tous les besoins
 
-> Kubernetes = "Greek for helmsman of a ship"
+> Kubernetes = "Greek for **helmsman** of a ship"
 
 ---
 
@@ -99,10 +99,10 @@ Quelques outils d'installation :
 
 ## Tout est API et YAML (1/2)
 
-**Dans Kubernetes, toutes les ressources sont des objets API**
+Dans Kubernetes, **toutes** les ressources sont des objets API !
 
 ```bash
-# Applications, infrastructure, configuration... tout !
+# Applications, Reverse proxy, configuration, volumes... tout !
 kubectl api-resources
 NAME                                SHORTNAMES                          APIVERSION                        NAMESPACED   KIND
 bindings                                                                v1                                true         Binding
@@ -121,10 +121,10 @@ pods                                po                                  v1      
 
 ## Tout est API et YAML (2/2)
 
-**Les humains interagissent principalement avec du YAML** *(ou JSON)*
+**Les humains interagissent avec Kubernetes via du YAML** *(ou JSON)*
 
 ```yaml
-# Un exemple simple qu'on verra en détail au Module 3
+# Exemple simplifié d'une application (en détail dans le module 3)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -149,7 +149,7 @@ spec:
                 On boucle à l'infini
 ```
 
-- **Auto-réparation** : Redémarre les Pods crashés
+- **Auto-réparation** : Redémarre les applications crashés
 - **Convergence** : Réatteindre l'état souhaité après une panne
 - **Idempotence** : Appliquer plusieurs fois = même résultat
 
@@ -179,7 +179,7 @@ status:
 
 Les objets logiques de Kubernetes sont décrits par des APIs.
 
-Pour s'assurer de la compatibilité des applications tout en permettant leur évolution, les APIs de Kubernetes sont versionnées
+Pour s'assurer de la compatibilité des APIs tout en permettant leur évolution, les APIs de Kubernetes sont versionnées :
 
 ```bash
 # Lister toutes les APIs disponibles
@@ -295,7 +295,7 @@ boucle infinie:
   état_souhaité = lire_configuration()
   si état_actuel != état_souhaité:
     agir_pour_corriger()
-  attendre(30_secondes)
+  attendre(court_instant)
 ```
 
 [kubernetes.io/docs/concepts/architecture/controller](https://kubernetes.io/docs/concepts/architecture/controller/#controller-pattern)
@@ -304,9 +304,9 @@ boucle infinie:
 
 ## Quelques exemples de contrôleurs
 
-- **Deployment Controller** : Gère les ReplicaSets
-- **ReplicaSet Controller** : Maintient le nombre de Pods
-- **Endpoint Controller** : Met à jour les Services
+- **Deployment Controller** : gère les ReplicaSets
+- **ReplicaSet Controller** : maintient le nombre de Pods
+- **Endpoint Controller** : met à jour les Services
 
 ![center height:270](binaries/etcd+apiserver+controller.png)
 
@@ -317,8 +317,8 @@ boucle infinie:
 
 - **Ressources disponibles sur le Node** : CPU, RAM, stockage
 - **Contraintes** : nodeSelector, affinity/anti-affinity
-- **Taints et tolerations** : Exclusions et autorisations
-- **Répartition** : Éviter la concentration sur un seul Node
+- **Taints et tolerations** : exclusions et autorisations
+- **Répartition** : éviter la concentration sur un seul Node
 
 ![center height:270](binaries/etcd+apiserver+controller+scheduler.png)
 
@@ -349,7 +349,7 @@ status:
 Au delà de la quantité de CPU / RAM, il faut garder en tête que les nodes sont des serveurs avec :
 - **Max pods/Node** : 110 par défaut (configurable)
 - **CIDR constraints** : Nombre d'IPs disponibles pour les containers
-- **Storage** : Volumes locaux éphémères (ou non)
+- **Storage** : taille max des volumes locaux (éphémères ou non)
 
 ---
 
@@ -434,10 +434,10 @@ En simplifiant (beaucoup) :
 Pour comprendre en détail les fonctionnement interne de Kubernetes, le mieux reste encore de **tester soi-même** !
 
 Le dépôt suivant contient un tutoriel et des scripts pour "contruire" un cluster Kubernetes, binaire par binaire :
-* [github.com/zwindler/demystifions-kubernetes](https://github.com/zwindler/demystifions-kubernetes)
+- [github.com/zwindler/demystifions-kubernetes](https://github.com/zwindler/demystifions-kubernetes)
 
 Une version talk 40 minutes est également disponible :
-* [Cloud Nord  - Démystifions les composants internes de Kubernetes](https://www.youtube.com/watch?v=Zv54GvQT6hI)
+- [Cloud Nord  - Démystifions les composants internes de Kubernetes](https://www.youtube.com/watch?v=Zv54GvQT6hI)
 
 ---
 
