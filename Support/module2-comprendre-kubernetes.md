@@ -41,7 +41,7 @@ blockquote:after{
 
 ## Sommaire du Module 2
 
-- C'est quoi Kubernetes ? Pourquoi on l'utilise ?
+- C'est quoi Kubernetes ? Pourquoi on l'utilise ? Comment le déployer ?
 - Concepts clés de Kubernetes
 - Le Control Plane (Master)
 - Les Nodes (Workers)
@@ -75,7 +75,18 @@ blockquote:after{
 
 > Kubernetes = "Greek for helmsman of a ship"
 
+---
 
+## Comment déployer Kubernetes ?
+
+Quelques Kubernetes managés :
+- **[AWS EKS](https://aws.amazon.com/fr/eks/)**, **[Azure AKS](https://azure.microsoft.com/fr-fr/products/kubernetes-service)**, **[Google GKE](https://cloud.google.com/kubernetes-engine?hl=fr)**, **[OVH Managed Kubernetes](https://www.ovhcloud.com/fr/public-cloud/kubernetes/)**, ...
+
+Quelques outils d'installation :
+- [**kubeadm**](https://kubernetes.io/fr/docs/setup/production-environment/tools/kubeadm/install-kubeadm/) : Outil officiel pour bootstrapper un cluster
+- [**Kubespray**](https://kubernetes.io/fr/docs/setup/custom-cloud/kubespray/) : Déploiement via Ansible
+- **[k3s](https://k3s.io/) / [k0s](https://k3s.io/)** : Binaires uniques "tout en un"
+- **[Talos Linux](https://www.talos.dev/) / [Kairos](https://kairos.io/)** : OS immutables conçus pour Kubernetes
 
 ---
 
@@ -86,7 +97,47 @@ blockquote:after{
 
 ---
 
-## Boucles de réconciliation
+## Tout est API et YAML (1/2)
+
+**Dans Kubernetes, toutes les ressources sont des objets API**
+
+```bash
+# Applications, infrastructure, configuration... tout !
+kubectl api-resources
+NAME                                SHORTNAMES                          APIVERSION                        NAMESPACED   KIND
+bindings                                                                v1                                true         Binding
+componentstatuses                   cs                                  v1                                false        ComponentStatus
+configmaps                          cm                                  v1                                true         ConfigMap
+endpoints                           ep                                  v1                                true         Endpoints
+events                              ev                                  v1                                true         Event
+limitranges                         limits                              v1                                true         LimitRange
+namespaces                          ns                                  v1                                false        Namespace
+nodes                               no                                  v1                                false        Node
+persistentvolumeclaims              pvc                                 v1                                true         PersistentVolumeClaim
+persistentvolumes                   pv                                  v1                                false        PersistentVolume
+pods                                po                                  v1                                true         Pod
+```
+---
+
+## Tout est API et YAML (12/2)
+
+**Les humains interagissent principalement avec du YAML** *(ou JSON)*
+
+```yaml
+# Un exemple simple qu'on verra en détail au Module 3
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mon-app
+spec:
+  replicas: 3
+```
+
+> **Comprendre :** Kubernetes = base de données d'objets + contrôleurs qui agissent
+
+---
+
+## Boucles de réconciliation (1/2)
 
 ```
 ┌─────────────┐    ┌──────────────┐    ┌──────────────┐
@@ -120,7 +171,7 @@ status:
   readyReplicas: 2
 ```
 
-> **Le contrôleur créer un 3ème Pod pour atteindre l'état souhaité**
+> **Le contrôleur crée un 3ème Pod pour atteindre l'état souhaité**
 
 ---
 
@@ -293,12 +344,13 @@ status:
 
 ---
 
-## Focus : ressources d'un Node (21/2)
+## Focus : ressources d'un Node (2/2)
 
 Au delà de la quantité de CPU / RAM, il faut garder en tête que les nodes sont des serveurs avec :
 - **Max pods/Node** : 110 par défaut (configurable)
 - **CIDR constraints** : Nombre d'IPs disponibles pour les containers
 - **Storage** : Volumes locaux éphémères (ou non)
+
 ---
 
 <!-- _class: lead -->
