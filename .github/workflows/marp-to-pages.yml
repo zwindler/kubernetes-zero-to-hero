@@ -49,15 +49,17 @@ jobs:
 
       - name: Build Marp presentations
         run: |
-          # Find all .md files in Support directory
-          find Support -name "*.md" -type f | while read file; do
-            echo "Processing: $file"
-            filename=$(basename "$file" .md)
-            
-            # Build HTML with Marp
-            npx marp "$file" --html --output "dist/${filename}.html"
-            
-            echo "Generated: dist/${filename}.html"
+          # Process each .md file individually to avoid conflicts
+          for file in Support/*.md; do
+            if [ -f "$file" ]; then
+              echo "Processing: $file"
+              filename=$(basename "$file" .md)
+              
+              # Build HTML with Marp (one file at a time)
+              marp "$file" --html --output "dist/${filename}.html"
+              
+              echo "Generated: dist/${filename}.html"
+            fi
           done
 
       - name: Create index.html

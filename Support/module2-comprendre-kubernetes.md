@@ -119,7 +119,7 @@ pods                                po                                  v1      
 ```
 ---
 
-## Tout est API et YAML (12/2)
+## Tout est API et YAML (2/2)
 
 **Les humains interagissent principalement avec du YAML** *(ou JSON)*
 
