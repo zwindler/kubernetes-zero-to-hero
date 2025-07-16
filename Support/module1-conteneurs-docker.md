@@ -172,7 +172,7 @@ Docker utilise un **système de fichiers en couches** (layered FS) :
 
 ```
 ┌─────────────────┐
-|     couche 5    | ← Couche application  (RW)  ^
+|     couche 5    | ← Couche application  (RW)  ▲
 ┌─────────────────┤                             |
 |     couche 4    | ← COPY . .                  |
 ├─────────────────┤                             |
