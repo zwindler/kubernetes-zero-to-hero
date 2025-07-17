@@ -414,7 +414,7 @@ Il existe plusieurs modes de fonctionnement mais le mode par défaut (`iptables`
 
 ---
 
-## Architecture de Kubernetes
+## Récap : architecture de Kubernetes
 
 En simplifiant (beaucoup) :
 
@@ -475,4 +475,5 @@ Allez dans le dossier `TP/module-2/instructions/`
 - [Kubernetes Official Documentation](https://kubernetes.io/docs/)
 - [Kubernetes The Hard Way - Kelsey Hightower](https://github.com/kelseyhightower/kubernetes-the-hard-way)
 - [Kubernetes Deconstructed - Carson Anderson](https://www.youtube.com/watch?v=90kZRyPcRZw)
-
+- [Kubernetes documentation - Considerations for large clusters
+](https://kubernetes.io/docs/setup/best-practices/cluster-large/)
