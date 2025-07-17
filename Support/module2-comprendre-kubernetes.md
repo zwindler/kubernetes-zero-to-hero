@@ -85,7 +85,7 @@ Quelques Kubernetes managés :
 Quelques outils d'installation :
 - [**kubeadm**](https://kubernetes.io/fr/docs/setup/production-environment/tools/kubeadm/install-kubeadm/) : Outil officiel pour bootstrapper un cluster
 - [**Kubespray**](https://kubernetes.io/fr/docs/setup/custom-cloud/kubespray/) : Déploiement via Ansible
-- **[k3s](https://k3s.io/) / [k0s](https://k3s.io/)** : Binaires uniques "tout en un"
+- **[k3s](https://k3s.io/) / [k0s](https://k0sproject.io/)** : Binaires uniques "tout en un"
 - **[Talos Linux](https://www.talos.dev/) / [Kairos](https://kairos.io/)** : OS immutables conçus pour Kubernetes
 
 ---
@@ -433,7 +433,7 @@ En simplifiant (beaucoup) :
 
 Pour comprendre en détail les fonctionnement interne de Kubernetes, le mieux reste encore de **tester soi-même** !
 
-Le dépôt suivant contient un tutoriel et des scripts pour "contruire" un cluster Kubernetes, binaire par binaire :
+Le dépôt suivant contient un tutoriel et des scripts pour "construire" un cluster Kubernetes, binaire par binaire :
 - [github.com/zwindler/demystifions-kubernetes](https://github.com/zwindler/demystifions-kubernetes)
 
 Une version talk 40 minutes est également disponible :
