@@ -328,6 +328,24 @@ docker rmi <image-id>
 
 <!-- _class: lead -->
 
+# Aller plus loin
+
+---
+
+## Desktop, Compose, Swarm
+
+Quelques outils supplémentaires développé par Docker Inc.
+
+- [**Docker Desktop** - Interface graphique pour développeurs (Windows/Mac)](https://www.docker.com/products/docker-desktop/)
+- [**Compose : multi-conteneurs avec YAML** - `docker-compose up`](https://docs.docker.com/compose/)
+- [**Swarm : clustering natif Docker** - Alternative basique à Kubernetes](https://docs.docker.com/engine/swarm/)
+
+> K8s reste **le** standard pour l'orchestration de containers
+
+---
+
+<!-- _class: lead -->
+
 # TP 1 : Votre première image Docker
 
 ---
@@ -343,17 +361,6 @@ A partir d'un serveur web Python simple :
 
 Allez dans le dossier `TP/1/instructions/`
 
----
-
-## Desktop, Compose, Swarm
-
-Quelques outils supplémentaires développé par Docker Inc.
-
-- [**Docker Desktop** - Interface graphique pour développeurs (Windows/Mac)](https://www.docker.com/products/docker-desktop/)
-- [**Compose : multi-conteneurs avec YAML** - `docker-compose up`](https://docs.docker.com/compose/)
-- [**Swarm : clustering natif Docker** - Alternative basique à Kubernetes](https://docs.docker.com/engine/swarm/)
-
-> K8s reste **le** standard pour l'orchestration de containers
 
 ---
 

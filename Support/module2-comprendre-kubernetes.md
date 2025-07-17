@@ -443,6 +443,25 @@ Une version talk 40 minutes est également disponible :
 
 <!-- _class: lead -->
 
+# TP 2 : Installer Kubernetes en local
+
+---
+
+## Objectif du TP : installer un cluster Kubernetes local
+
+Pour tester les concepts vus dans ce module et préparer la suite :
+
+1. Installer kind (Kubernetes in Docker)
+2. Installer kubectl (CLI Kubernetes)
+3. Créer votre premier cluster
+4. Tester avec un pod nginx
+
+Allez dans le dossier `TP/module-2/instructions/`
+
+---
+
+<!-- _class: lead -->
+
 ## Questions ?
 
 *Prêts à découvrir les ressources de base ?*
