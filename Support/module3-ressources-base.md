@@ -46,10 +46,10 @@ blockquote:after{
 - Commandes kubectl et gestion du cluster
 
 **Partie 2 : Les ressources Kubernetes**  
-- Namespaces, Pods, Deployments, Services
-- ConfigMaps, Secrets, Volumes, Ingress, Jobs
+- Nodes, Namespaces, Pods, Deployments, Services
+- ConfigMaps, Secrets, Volumes, Ingress
 
-![bg fit right:25%](binaries/kubernetes_small.png)
+![bg fit right:22%](binaries/kubernetes_small.png)
 
 ---
 
@@ -418,8 +418,8 @@ tp-kubernetes-worker2         Ready    <none>          24h   v1.32.2
 **Préparation pour les maintenances :** (un)cordon et drain
 
 ```bash
-$ kubectl cordon nodes tp-kubernetes-worker (bloque le scheduling)
-$ kubectl drain nodes tp-kubernetes-worker (vide le node de ses pods)
+$ kubectl cordon tp-kubernetes-worker    # Bloque le scheduling
+$ kubectl drain tp-kubernetes-worker     # Vide le node de ses pods
 ```
 
 ---
@@ -599,9 +599,9 @@ kubectl rollout status deployment/nginx
 
 ## Services
 
-Les Pods sont des entités **éphémères**. Il faut donc une ressource capable de découvrir les Pods "vivants" et leur servir le traffic.
+Les Pods sont des entités **éphémères**. Il faut donc une ressource capable de découvrir les Pods "vivants" et leur servir le trafic.
 
-- **Load balancing** : Répartit le trafic entre les Pods cilbes
+- **Load balancing** : Répartit le trafic entre les Pods cibles
 - **Nom DNS stable** : `<nomsvc>.<namespace>.svc.cluster.local`
 - **Service discovery**  : Trouve automatiquement les Pods cibles grâce aux labels
 
@@ -857,7 +857,7 @@ spec:
 ### Objectif du TP : Déployer une application web complète
 
 **Objectif :** Mettre en pratique toutes les ressources vues
-- Namespace, ConfigMap, Secret, PVC
+- Namespace, ConfigMap, Secret
 - Deployments Redis et API 
 - Services ClusterIP
 - Ingress avec nom de domaine
@@ -873,7 +873,7 @@ Instructions détaillées dans `TP/module-3/instructions`
 
 *Prêts pour la gestion et les opérations ?*
 
-![bg fit right:40%](binaries/kubernetes_small.png)
+![bg fit right:35%](binaries/kubernetes_small.png)
 
 ---
 
