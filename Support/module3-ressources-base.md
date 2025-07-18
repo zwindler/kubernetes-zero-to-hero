@@ -49,7 +49,7 @@ blockquote:after{
 - Namespaces, Pods, Deployments, Services
 - ConfigMaps, Secrets, Volumes, Ingress, Jobs
 
-![bg fit right:30%](binaries/kubernetes_small.png)
+![bg fit right:25%](binaries/kubernetes_small.png)
 
 ---
 
@@ -59,7 +59,16 @@ blockquote:after{
 
 ---
 
-TODO slide pour donner un peu de contexte sur le format YAML et indiquer qu'on va en faire beaucoup dans Kubernetes
+## YAML Ain't Markup Language
+
+- **Indentation** : Structure hiérarchique par espaces
+- **Human readable**
+- **Standard** dans les outils Cloud Native
+
+> **Dans Kubernetes :** Tous les objets sont définis en YAML
+> Nous allons manipuler **énormément** de fichiers YAML !
+
+![bg fit right:30%](binaries/box_of_devops.webp)
 
 ---
 
@@ -86,16 +95,14 @@ status:                  # État actuel (géré par Kubernetes)
 
 ## Métadonnées : Organisation et identification
 
-**Les `metadata` contiennent des informations cruciales :**
-
 ```yaml
 metadata:
-  name: nginx-web-server        # Nom unique dans le namespace
   namespace: production         # Isolation logique
+  name: nginx-web-server        # Nom (unique dans le namespace)
   labels:                       # Étiquettes pour sélection/groupement
     app: nginx
     component: web-server
-    version: "1.21"
+    version: "1.29"
     env: production
     team: frontend
   annotations:                  # Métadonnées non-sélectionnables
@@ -105,21 +112,36 @@ metadata:
 
 ---
 
-## Focus : labels vs annotations :
+## Focus : labels vs annotations (1/2)
 
-- **Labels** : permettent de filtrer les ressources
-- **Annotations** : Documentation et métadonnées
+**Labels :**
+- **Sélection** : Utilisés par les contrôleurs et services (`selector`)
+- **Filtrage** : Requêtes avec `kubectl get -l`
+- **Limitations** : 63 caractères max, caractères alphanum + `-_.`
+- **Exemples** : `app=nginx`, `env=production`, `version=v1.2`
 
-**Note** : selon le type de ressource, les labels sont parfois immuables, contrairement aux annotations
+> **Note :** Les labels peuvent être immuables selon le type de ressource
+
+---
+
+## Focus : labels vs annotations (2/2)
+
+**Annotations :**
+- **Documentation** : Descriptions, notes, métadonnées riches
+- **Outils** : Configuration pour ingress, monitoring, CI/CD
+- **Liberté** : Pas de limite de caractères, tous caractères autorisés
+- **Exemples** : URLs, JSON, descriptions longues
+
+**Ce sont donc deux types de métadonnées avec des usages différents !**
 
 ---
 
 ## Namespaces dans les manifests (1/2)
 
-Certaines ressources peuvent être organisées
+Certaines ressources peuvent être organisées en "namespaces". D'autres sont "cluster wide".
 
 ```yaml
-# Créer un namespace
+# Exemple du manifest d'un Namespace
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -133,41 +155,44 @@ metadata:
 
 ## Namespaces dans les manifests (2/2)
 
+Pour un type donné (de ressource "namespacée"), *name* doit être unique dans le *namespace*
+
+**Bonne pratique :** spécifiez **toujours** le *namespace* d'une ressource
 
 ```yaml
-# Utiliser un namespace dans une ressource
 apiVersion: v1
 kind: Pod
 metadata:
   name: nginx-pod
   namespace: development
-  labels:
-    app: nginx
 spec:
   containers:
   - name: nginx
     image: nginx:1.29
 ```
 
-**Bonne pratique :** toujours spécifier le **namespace** dans vos manifests
 
 ---
 
-## le kubeconfig (1/2)
+## kubeconfig : le fichier de connexion
 
-**Le fichier de connexion à Kubernetes**
+Structure logique :
+```
+kubeconfig
+├── clusters         # Définition des clusters (URL, certificats)
+├── users            # Identifiants et authentification
+├── contexts         # Association cluster + user + namespace
+└── current-context  # Contexte actif
+```
 
-On peut avoir plusieurs utilisateurs, clusters, etc dans un même fichier
+**Emplacement :** `~/.kube/config` (par défaut)
 
-TODO structure logique du fichier kubeconfig
 
 ---
 
-## le kubeconfig (2/2)
-
+## kubeconfig (2/2)
 
 ```yaml
-# ~/.kube/config
 apiVersion: v1
 kind: Config
 clusters:
@@ -189,6 +214,8 @@ users:
     client-key-data: LS0tLS1CRU...
 ```
 
+![bg fit right:30%](void)
+
 ---
 
 ## kubectl : état du cluster
@@ -207,7 +234,7 @@ kubectl api-versions              # Versions d'API disponibles
 
 ---
 
-## kubectl : commandes génériques sur les diverses ressources
+## kubectl : commandes génériques
 
 ```bash
 # Commandes génériques (fonctionne avec toute ressource)
@@ -222,45 +249,40 @@ kubectl delete <type> <nom>       # Supprimer une ressource
 
 ## Gestion des contextes et namespaces
 
-**Naviguer entre différents environnements :**
-
 ```bash
 # Gestion des contextes
 kubectl config get-contexts                    # Liste tous les contextes
-kubectl config current-context               # Contexte actuel
-kubectl config use-context prod-admin        # Changer de contexte
+kubectl config current-context                 # Contexte actuel
+kubectl config use-context prod-admin          # Changer de contexte
 
 # Gestion des namespaces
-kubectl get namespaces                        # Lister tous les namespaces
 kubectl config set-context --current --namespace=production
+kubectl get namespaces                         # Lister tous les namespaces
 
-# Ou spécifier pour une commande
-kubectl get pods --namespace production      # ou -n production
-kubectl get pods --all-namespaces           # ou -A
+kubectl get <type> --namespace production        # ou -n production
+kubectl get <type> --all-namespaces              # ou -A
 ```
 
-**Astuce :** Utiliser des outils comme `kubectx` et `kubens` pour faciliter le changement de contexte/namespace.
+**Note :** tools `kubectx` et `kubens` facilitent le changement de contexte / namespace.
 
 ---
 
 ## Sélecteurs et labels avec kubectl
 
-**Maintenant que nous comprenons les labels dans les manifests :**
-
 ```bash
 # Utiliser les labels pour filtrer
-kubectl get pods -l app=nginx                 # Pods avec label app=nginx
-kubectl get pods -l app=nginx,env=production  # ET logique
-kubectl get pods -l 'env in (dev,staging)'    # OU logique
-kubectl get pods -l app!=nginx                # Négation
+kubectl get <type> -l app=nginx                  # ressouces avec label app=nginx
+kubectl get <type> -l app=nginx,env=production   # ET logique
+kubectl get <type> -l 'env in (dev,staging)'     # OU logique
+kubectl get <type> -l app!=nginx                 # Négation
 
 # Afficher les labels
-kubectl get pods --show-labels                # Voir tous les labels
-kubectl get pods -L app,env                   # Colonnes spécifiques
+kubectl get <type> --show-labels                 # Voir tous les labels
+kubectl get <type> -L app,env                    # Colonnes spécifiques
 
 # Modifier les labels
-kubectl label pods mon-pod version=v2         # Ajouter/modifier
-kubectl label pods mon-pod version-           # Supprimer
+kubectl label <type> ma-ressource version=v2     # Ajouter/modifier
+kubectl label <type> ma-ressource version-       # Supprimer "version"
 ```
 
 ---
@@ -269,19 +291,20 @@ kubectl label pods mon-pod version-           # Supprimer
 
 ```bash
 # Formats d'affichage
-kubectl get pods -o wide                      # Plus de détails
-kubectl get pods -o yaml                      # Format YAML complet
-kubectl get pods -o json                      # Format JSON
-kubectl get pods -o jsonpath='{.items[0].metadata.name}'
+kubectl get <type> -o wide                  # Plus de détails
+kubectl get <type> -o yaml                  # Format YAML complet
+kubectl get <type> -o json                  # Format JSON
+kubectl get <type> -o jsonpath='{.items[0].metadata.name}'
 
-# Suivi en temps réel
-kubectl get pods --watch                      # ou -w
-kubectl logs -f mon-pod                       # Logs en temps réel
+kubectl describe <type> ma-ressource        # Détails sur une ressource
 
 # Débogage
-kubectl describe pod mon-pod                  # Événements et détails
-kubectl logs mon-pod                          # Logs du conteneur
-kubectl exec -it mon-pod -- /bin/bash         # Shell interactif
+kubectl logs mon-pod                        # Logs du conteneur
+kubectl exec -it mon-pod -- /bin/bash       # Shell interactif
+
+# Suivi en temps réel
+kubectl get <type> --watch                  # ou -w
+kubectl logs -f mon-pod                     # Logs en temps réel d'un "pod"
 ```
 
 ---
@@ -291,28 +314,44 @@ kubectl exec -it mon-pod -- /bin/bash         # Shell interactif
 **Commandes utiles pour toute ressource :**
 
 ```bash
-# Générer du YAML
+# Générer le manifest YAML d'une ressource, sans la créer
 kubectl create <type> <nom> --dry-run=client -o yaml
 
-# Éditer en direct
+# Éditer en direct une ressource existante
 kubectl edit <type> <nom>
 
-# Récupérer la configuration
+# Récupérer le manifest d'une ressource existante
 kubectl get <type> <nom> -o yaml > backup.yaml
+
+# Surveiller les événements
+kubectl get events --watch
+kubectl get events --sort-by='.lastTimestamp'
 ```
 
 ---
 
 ## Astuces kubectl (2/2)
 
-```bash
-# Surveiller les événements
-kubectl get events --watch
-kubectl get events --sort-by='.lastTimestamp'
+Aide contextuelle sur les ressources
 
-# Aide contextuelle
-kubectl explain <type>              # Documentation du type
-kubectl explain <type>.spec         # Documentation d'une section
+```bash
+kubectl explain <type>           # Documentation du type
+kubectl explain <type>.<champ>   # Documentation d'une section
+```
+
+```bash
+$ kubectl explain pod.metadata.name 
+KIND:       Pod
+VERSION:    v1
+
+FIELD: name <string>
+
+DESCRIPTION:
+    Name must be unique within a namespace. Is required when creating resources,
+    although some resources may allow a client to request the generation of an
+    appropriate name automatically. Name is primarily intended for creation
+    idempotence and configuration definition. Cannot be updated. More info:
+    https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names                      
 ```
 
 ---
@@ -333,8 +372,6 @@ kubectl get namespaces
 kubectl get nodes -o wide
 ```
 
-> Maintenant que nous maîtrisons l'outil, explorons les ressources !
-
 ---
 
 <!-- _class: lead -->
@@ -344,21 +381,70 @@ kubectl get nodes -o wide
 
 ---
 
-## Namespaces : Isolation et organisation
+## Nodes (rappel module 2)
 
-TODO rework
+Serveur informatique qui va exécuter nos containers
 
-**Cas d'usage courants :**
-- **Environnements** : `development`, `staging`, `production`
-- **Équipes** : `team-frontend`, `team-backend`, `team-data`  
-- **Applications** : `wordpress`, `monitoring`, `logging`
-- **Clients** : `client-a`, `client-b` (multi-tenant)
+```bash
+Capacity:
+  cpu:                2
+  ephemeral-storage:  100476656Ki
+  memory:             8113864Ki
+  pods:               110
+Allocatable:
+  cpu:                2
+  ephemeral-storage:  100476656Ki
+  memory:             8113864Ki
+  pods:               110
+```
+
+![bg fit right:40%](binaries/node.png)
+
+---
+
+## Nodes : gestion de base
+
+
+```bash
+$ kubectl get nodes
+NAME                          STATUS   ROLES           AGE   VERSION
+tp-kubernetes-control-plane   Ready    control-plane   24h   v1.32.2
+tp-kubernetes-worker          Ready    <none>          24h   v1.32.2
+tp-kubernetes-worker2         Ready    <none>          24h   v1.32.2
+```
+
+**États possibles :** Ready, NotReady, Unknown
+
+**Préparation pour les maintenances :** (un)cordon et drain
+
+```bash
+$ kubectl cordon nodes tp-kubernetes-worker (bloque le scheduling)
+$ kubectl drain nodes tp-kubernetes-worker (vide le node de ses pods)
+```
+
+---
+
+## Namespaces : Isolation et organisation (1/2)
+
+
+Quelques *patterns* classiques de découpage par namespaces :
+
+- Par environnements : `development`, `staging`, `production`
+- Par équipes : `team-frontend`, `team-backend`, `team-data`  
+- Par applications : `wordpress`, `monitoring`, `logging`
+- Par clients : `client-a`, `client-b`
+
+**Conseil** : choisissez une stratégie et restez cohérent !
+
+---
+
+## Namespaces : Isolation et organisation (2/2)
 
 **Isolation fournie :**
-- **Noms** : Deux pods peuvent avoir le même nom dans des namespaces différents
-- **Réseau** : Politiques réseau par namespace (optionnel)
+- **Noms** : Deux ressources d'un même type **peuvent** avoir le même nom dans des namespaces **différents**
 - **Quotas** : Limites CPU/RAM/stockage par namespace
-- **RBAC** : Permissions d'accès par namespace
+- **Réseau** : avec de la configuration supplémentaires, on peut rajouter du filtrage réseau par namespace (cf **module 5**)
+- **RBAC** : Permissions d'accès par namespace (cf **module 6**)
 
 ---
 
@@ -369,19 +455,28 @@ TODO rework
 kubectl create namespace production
 kubectl apply -f namespace.yaml
 
-# Utiliser un namespace spécifique
+# Argument "-n/--namespace" pour forcer un namespace explicitement
 kubectl get pods -n development
 kubectl apply -f app.yaml -n development
 
-# Définir un namespace par défaut
+# Définir un namespace par défaut sur le contexte
 kubectl config set-context --current --namespace=development
 ```
 
 ---
 
-## Pods
+## Pod : l'unité d'exécution
 
-TODO
+Groupe de conteneurs qui partagent :
+- même adresse IP et ports  
+- même volumes accessibles
+
+Autres caractéristiques :
+- Créés et détruits ensemble
+- Entité éphémère
+- Unité atomique
+
+![bg fit right:40%](binaries/nodes-pods.png)
 
 ---
 
@@ -395,7 +490,7 @@ metadata:
 spec:
   containers:
   - name: nginx
-    image: nginx:1.21
+    image: nginx:1.29
     ports:
     - containerPort: 80
 ```
@@ -414,7 +509,9 @@ spec:
 - **Failed** : Au moins un conteneur a échoué
 - **Unknown** : État du Pod indéterminable
 
-**Commandes pour les Pods :**
+---
+
+## Commandes pour les Pods
 
 ```bash
 # Voir l'état des Pods
@@ -430,7 +527,7 @@ kubectl exec -it nginx-pod -- bash  # Se connecter au Pod
 
 ---
 
-## Deployments : Gérer les Pods
+## Deployments : pour gérer les Pods
 
 **Contrôleur qui gère des groupes de Pods identiques**
 
@@ -439,91 +536,121 @@ kubectl exec -it nginx-pod -- bash  # Se connecter au Pod
 - **Rollback** : Retour à une version précédente
 - **Scaling** : Augmentation/diminution du nombre de réplicas
 
+---
+
+## Deployment : exemple de manifest
+
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nginx-deployment
 spec:
-  replicas: 3
+  replicas: 3            #<----- nombre de Pods correspondant au spec.template qu'on veut gérer  
   selector:
     matchLabels:
       app: nginx
-  template:
+  template:              #<----- spec.template est équivalent à la définition complète du Pod
     metadata:
       labels:
         app: nginx
-    spec:
+    spec:                #<----- spec.template.spec est équivalente à la spec du Pod
       containers:
       - name: nginx
-        image: nginx:1.21
+        image: nginx:1.29
         ports:
         - containerPort: 80
 ```
 
 ---
 
-## Deployments : Opérations courantes
-
-**Commandes pour gérer les Deployments :**
+## Deployments : opérations courantes
 
 ```bash
 # Créer un deployment
-kubectl create deployment nginx --image=nginx:1.21
+kubectl create deployment nginx --image=nginx:1.29
 
-# Scaler un deployment
+# Modifier à chaud le nombre de replicas
 kubectl scale deployment nginx --replicas=5
 
-# Mettre à jour l'image
-kubectl set image deployment/nginx nginx=nginx:1.22
+# Changer la version de l'image docker du container "nginx"
+kubectl set image deployment/nginx nginx=nginx:1.29.1
 
-# Voir l'historique des déploiements
+# Historique des déploiements
 kubectl rollout history deployment/nginx
-
-# Rollback vers la version précédente
 kubectl rollout undo deployment/nginx
-
-# Voir le statut du rollout
 kubectl rollout status deployment/nginx
 ```
 
 ---
 
-## Services : Exposer les applications
+## Autres contrôleurs de Pods
 
-**Abstraction qui expose un ensemble de Pods**
+**Au-delà des Deployments, d'autres contrôleurs gèrent des Pods :**
 
-- **Load balancing** : Répartit le trafic entre les Pods
-- **Service discovery** : Nom DNS stable pour l'application
-- **Sélection par labels** : Trouve automatiquement les Pods cibles
+- **DaemonSet** : Un Pod par Node (monitoring, logs, stockage...)
+- **StatefulSet** : Pods avec identité stable (bases de données, Kafka...)
+- **Job** : Tâches ponctuelles (migrations, calculs batch...)
+- **CronJob** : Tâches programmées (sauvegardes, nettoyage...)
 
-**Types de Services :**
-- **ClusterIP** : Accès interne uniquement (défaut)
-- **NodePort** : Expose sur un port de chaque Node
-- **LoadBalancer** : Crée un load balancer externe (cloud)
-- **ExternalName** : Alias DNS vers un service externe
+> **Principe :** Chaque contrôleur répond à un besoin spécifique d'orchestration
 
 ---
 
-## Services : Exemples pratiques
+## Services
+
+Les Pods sont des entités **éphémères**. Il faut donc une ressource capable de découvrir les Pods "vivants" et leur servir le traffic.
+
+- **Load balancing** : Répartit le trafic entre les Pods cilbes
+- **Nom DNS stable** : `<nomsvc>.<namespace>.svc.cluster.local`
+- **Service discovery**  : Trouve automatiquement les Pods cibles grâce aux labels
 
 ```yaml
-# Service ClusterIP (interne)
+spec:
+  selector:
+    app: nginx
+```
+
+---
+
+## Les types de Services
+
+Il existe plusieurs types de Services dans Kubernetes :
+
+- **ClusterIP** : Accès interne uniquement (défaut)
+- **NodePort** : Expose sur un port de chaque Node
+- **LoadBalancer** : alloue une IP externe (souvent via un Loadbalancer chez un cloud provider)
+- **ExternalName** : Alias DNS vers un service externe
+
+**Services headless** (ClusterIP: None) : Pas de load balancing, résolution DNS directe vers les Pods (utilisé par StatefulSets)
+
+---
+
+## Service : exemple de manifest ClusterIP
+
+Le Service n'est accessible qu'au sein du cluster, soit via son nom `<nomsvc>.<namespace>.svc.cluster.local`, soit via la ClusterIP affectée
+
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
   name: nginx-service
 spec:
-  selector:
+  selector:          #<----- vers quels pods le service doit router le traffic ?
     app: nginx
   ports:
-  - port: 80
-    targetPort: 80
+  - port: 80         #<----- port en frontal du Service
+    targetPort: 80   #<----- port cible vers le container du Pod
   type: ClusterIP
 ```
 
+---
+
+## Service : exemple de manifest NodePort
+
+En plus de la ClusterIP, le port 30080 est exposé sur TOUS les Nodes du cluster et redirige vers le port 80 du Service
+
 ```yaml
-# Service NodePort (exposé)
 apiVersion: v1
 kind: Service
 metadata:
@@ -534,58 +661,22 @@ spec:
   ports:
   - port: 80
     targetPort: 80
-    nodePort: 30080
+    nodePort: 30080        #<----- port exposé sur tous les Nodes                
   type: NodePort
 ```
 
 ---
 
-## Services : Découverte et résolution DNS
-
-**Kubernetes fournit un DNS interne automatique :**
+## Commandes pour les Services
 
 ```bash
-# Dans le même namespace
-curl http://nginx-service
+kubectl get services                     # Lister les services
+kubectl get endpoints nginx-service      # Voir les IPs des Pods
+kubectl describe service nginx-service   # Détails du service
 
-# Dans un autre namespace
-curl http://nginx-service.production.svc.cluster.local
-
-# Variables d'environnement automatiques
-echo $NGINX_SERVICE_SERVICE_HOST
-echo $NGINX_SERVICE_SERVICE_PORT
-```
-
-**Commandes pour les Services :**
-```bash
-kubectl get services                 # Lister les services
-kubectl get endpoints nginx-service # Voir les IPs des Pods
-kubectl describe service nginx-service # Détails du service
-```
-
----
-
-## Pratique : Déployer une application complète
-
-**Exercice : Créer un déploiement complet avec les 4 ressources**
-
-```bash
-# 1. Créer le namespace
-kubectl create namespace demo
-
-# 2. Déployer nginx
-kubectl create deployment nginx --image=nginx:1.21 -n demo
-
-# 3. Scaler à 3 réplicas
-kubectl scale deployment nginx --replicas=3 -n demo
-
-# 4. Exposer avec un service
-kubectl expose deployment nginx --port=80 --type=NodePort -n demo
-
-# 5. Vérifier que tout fonctionne
-kubectl get all -n demo
-kubectl get pods -n demo -o wide
-kubectl describe service nginx -n demo
+# Créer un service à partir d'un deployment existant
+kubectl expose deployment nginx --port=80 --type=ClusterIP
+kubectl expose deployment nginx --port=80 --type=NodePort --target-port=8080
 ```
 
 ---
@@ -599,6 +690,12 @@ kubectl describe service nginx -n demo
 - **TLS** : Terminaison SSL/TLS
 - **Load balancing** : Répartition du trafic
 
+> **Important :** Nécessite un Ingress Controller (nginx, traefik, etc.)
+
+---
+
+## Ingress : exemple de manifest 
+
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -606,10 +703,10 @@ metadata:
   name: nginx-ingress
 spec:
   rules:
-  - host: nginx.example.com
+  - host: nginx.example.com #<----- router les requêtes qui arrivent à l'IngressController avec cette URL
     http:
       paths:
-      - path: /
+      - path: /             #<----- on peut indiquer des Services différents en fonction du path
         pathType: Prefix
         backend:
           service:
@@ -618,19 +715,22 @@ spec:
               number: 80
 ```
 
-> **Important :** Nécessite un Ingress Controller (nginx, traefik, etc.)
+---
+
+## Volumes : Stockage pour les Pods
+
+Les Pods sont éphémères. Quand un Pod redémarre, on repart de l'image du container, donc on perd toute modification.
+
+Comment persister de la donnée (base de données, fichiers...) ?
+
+- **emptyDir** : volume éphémère
+- **hostPath** : dossier partagé dans le FS du Node
+- **configMap/secret** : configuration et secrets
+- **persistentVolumeClaim** : stockage persistant via fournisseur tiers
 
 ---
 
-## Volumes : Stockage persistant
-
-**Types de volumes courants :**
-
-- **emptyDir** : Volume temporaire (durée de vie du Pod)
-- **hostPath** : Dossier de l'hôte (dangereux en production)
-- **persistentVolumeClaim** : Stockage persistant
-- **configMap/secret** : Configuration et secrets
-- **nfs, cifs** : Stockage réseau
+## Exemple de Pod avec un volume *éphémère*
 
 ```yaml
 apiVersion: v1
@@ -643,51 +743,15 @@ spec:
     image: nginx
     volumeMounts:
     - name: html-volume
-      mountPath: /usr/share/nginx/html
+      mountPath: /usr/share/nginx/html #<----- montage dans le container
   volumes:
-  - name: html-volume
+  - name: html-volume #<----- volume utilisable par tous les containers
     emptyDir: {}
 ```
 
 ---
 
-## PersistentVolumes et PersistentVolumeClaims
-
-**Séparation entre stockage et consommation :**
-
-```yaml
-# PersistentVolumeClaim (demande de stockage)
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: nginx-pvc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
-  storageClassName: fast-ssd
-```
-
-```yaml
-# Utilisation dans un Pod
-spec:
-  containers:
-  - name: nginx
-    image: nginx
-    volumeMounts:
-    - name: storage
-      mountPath: /usr/share/nginx/html
-  volumes:
-  - name: storage
-    persistentVolumeClaim:
-      claimName: nginx-pvc
-```
-
----
-
-## ConfigMaps : Configuration externalisée
+## ConfigMaps : configuration externalisée
 
 **Stockage de configuration sous forme de clé-valeur :**
 
@@ -698,7 +762,6 @@ metadata:
   name: app-config
 data:
   database_url: "postgresql://db:5432/myapp"
-  log_level: "info"
   config.yaml: |
     server:
       port: 8080
@@ -707,22 +770,39 @@ data:
       driver: postgres
 ```
 
+---
+
+## ConfigMap : exemple dans un Pod
+
 ```yaml
-# Utilisation en variables d'environnement
 spec:
   containers:
   - name: app
     image: myapp:latest
-    envFrom:
-    - configMapRef:
+    envFrom:            
+    - configMapRef:  #<----- Toutes les clés du ConfigMap deviennent des variables d'env
         name: app-config
+```
+
+```yaml
+# Ou pour une clé spécifique :
+    env:
+    - name: DATABASE_URL
+      valueFrom:
+        configMapKeyRef:
+          name: app-config
+          key: database_url
 ```
 
 ---
 
-## Secrets : Données sensibles
+## Secrets : stockage de mots de passe, clés, certificats...
 
-**Stockage sécurisé de mots de passe, clés, certificats :**
+```bash
+$ kubectl create secret generic app-secrets \
+  --from-literal=database_password=password \
+  --from-literal=api_key=abcdefgh
+```
 
 ```yaml
 apiVersion: v1
@@ -731,17 +811,29 @@ metadata:
   name: app-secrets
 type: Opaque
 data:
-  database_password: cGFzc3dvcmQ=  # base64 de "password"
-  api_key: YWJjZGVmZ2g=           # base64 de "abcdefgh"
+  database_password: cGFzc3dvcmQ=  #<----- base64 de "password"                          
+  api_key: YWJjZGVmZ2g=            #<----- base64 de "abcdefgh"
 ```
 
-```bash
-# Créer un secret depuis la ligne de commande
-kubectl create secret generic app-secrets \
-  --from-literal=database_password=password \
-  --from-literal=api_key=abcdefgh
+---
 
-# Utilisation dans un Pod
+## Notes importantes à propos des Secrets
+
+La sécurité des Secrets **ne repose pas sur l'encodage** (base64 = pas chiffré) mais les stricts droits d'accès (RBAC) qu'on va donner aux utilisateurs. 
+
+Seuls les utilisateurs / applications qui ont besoin d'un secret donner doivent y avoir accès : c'est le [principe de moindre privilège](https://fr.wikipedia.org/wiki/Principe_de_moindre_privil%C3%A8ge).
+
+Pour la même raison, il ne faut JAMAIS *commit* un Secret avec des mots de passe dans `git` !
+
+Voir [bitnami-labs/sealed-secrets](https://github.com/bitnami-labs/sealed-secrets) / [OpenBao](https://openbao.org/) / [SOPS](https://github.com/getsops/sops)
+
+---
+
+## Secrets : exemple dans un Pod
+
+
+
+```yaml
 spec:
   containers:
   - name: app
@@ -755,116 +847,6 @@ spec:
 ```
 
 ---
-
-## Jobs : Tâches ponctuelles
-
-**Exécution de tâches qui se terminent :**
-
-```yaml
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: data-migration
-spec:
-  template:
-    spec:
-      containers:
-      - name: migration
-        image: migrate:latest
-        command: ["./migrate", "up"]
-        env:
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: db-secret
-              key: url
-      restartPolicy: Never
-  backoffLimit: 3
-```
-
-**Cas d'usage :** Migrations de base de données, traitement batch, backups
-
----
-
-## CronJobs : Tâches programmées
-
-**Exécution de tâches sur une planification cron :**
-
-```yaml
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: backup-db
-spec:
-  schedule: "0 2 * * *"  # Tous les jours à 2h du matin
-  jobTemplate:
-    spec:
-      template:
-        spec:
-          containers:
-          - name: backup
-            image: postgres:13
-            command:
-            - /bin/bash
-            - -c
-            - pg_dump $DATABASE_URL > /backup/dump_$(date +%Y%m%d).sql
-            env:
-            - name: DATABASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: db-secret
-                  key: url
-          restartPolicy: OnFailure
-```
-
----
-
-## Relations entre les ressources
-
-**Architecture d'une application complète :**
-
-```
-Namespace
-├── Deployment
-│   └── ReplicaSet
-│       └── Pods
-├── Service (→ Pods via labels)
-├── Ingress (→ Service)
-├── ConfigMap (→ Pods)
-├── Secret (→ Pods)
-└── PVC (→ Pods)
-    └── PV
-```
-
-> **Conseil :** Commencez simple puis ajoutez les ressources avancées
-
----
-
-## Exemple d'application complète
-
-**Déploiement WordPress avec MySQL :**
-
-```bash
-# 1. Namespace
-kubectl create namespace wordpress
-
-# 2. Secrets pour MySQL
-kubectl create secret generic mysql-secret \
-  --from-literal=password=motdepasse \
-  -n wordpress
-
-# 3. Déployer MySQL avec PVC
-kubectl apply -f mysql-deployment.yaml -n wordpress
-
-# 4. Déployer WordPress
-kubectl apply -f wordpress-deployment.yaml -n wordpress
-
-# 5. Exposer avec Ingress
-kubectl apply -f wordpress-ingress.yaml -n wordpress
-```
-
----
-
 
 <!-- _class: lead -->
 
