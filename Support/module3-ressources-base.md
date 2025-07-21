@@ -41,9 +41,9 @@ blockquote:after{
 
 ## Plan du Module 3
 
-**Partie 1 : YAML et kubectl**
-- Structure des manifests, métadonnées, namespaces, kubeconfig
-- Commandes kubectl et gestion du cluster
+**Partie 1 : YAML et `kubectl`**
+- Structure des manifests, métadonnées, namespaces, `.kube/config`
+- Commandes `kubectl` et gestion courante
 
 **Partie 2 : Les ressources Kubernetes**  
 - Nodes, Namespaces, Pods, Deployments, Services
@@ -55,17 +55,18 @@ blockquote:after{
 
 <!-- _class: lead -->
 
-# Partie 1 : YAML et kubectl
+# Partie 1 : YAML et `kubectl`
 
 ---
 
 ## YAML Ain't Markup Language
 
-- **Indentation** : Structure hiérarchique par espaces
+- Structure hiérarchique par espaces
 - **Human readable**
 - **Standard** dans les outils Cloud Native
 
-> **Dans Kubernetes :** Tous les objets sont définis en YAML
+Dans ![height:35](binaries/kubernetes_small.png), les objets sont généralement décrits en YAML par les utilisateurs, mais sont stockés et transmis en JSON par l’API.
+
 > Nous allons manipuler **énormément** de fichiers YAML !
 
 ![bg fit right:30%](binaries/box_of_devops.webp)
@@ -115,9 +116,9 @@ metadata:
 ## Focus : labels vs annotations (1/2)
 
 **Labels :**
-- **Sélection** : Utilisés par les contrôleurs et services (`selector`)
-- **Filtrage** : Requêtes avec `kubectl get -l`
-- **Limitations** : 63 caractères max, caractères alphanum + `-_.`
+- **Sélection** : utilisés par les contrôleurs et services (`selector:`)
+- **Filtrage** : requêtes avec `kubectl get -l`
+- **Limitations** : 63 (max) caractères [`a-zA-Z0-9-_.`] 
 - **Exemples** : `app=nginx`, `env=production`, `version=v1.2`
 
 > **Note :** Les labels peuvent être immuables selon le type de ressource
@@ -127,9 +128,9 @@ metadata:
 ## Focus : labels vs annotations (2/2)
 
 **Annotations :**
-- **Documentation** : Descriptions, notes, métadonnées riches
-- **Outils** : Configuration pour ingress, monitoring, CI/CD
-- **Liberté** : Pas de limite de caractères, tous caractères autorisés
+- **Documentation** : descriptions, notes, métadonnées riches
+- **Outils** : configuration pour ingress, monitoring, CI/CD
+- **Liberté** : pas de limite de caractères, tous caractères autorisés
 - **Exemples** : URLs, JSON, descriptions longues
 
 **Ce sont donc deux types de métadonnées avec des usages différents !**
@@ -155,7 +156,7 @@ metadata:
 
 ## Namespaces dans les manifests (2/2)
 
-Pour un type donné (de ressource "namespacée"), *name* doit être unique dans le *namespace*
+Pour un type donné (de ressource "namespacée"), `name: <valeur>` doit être unique dans le *Namespace*
 
 **Bonne pratique :** spécifiez **toujours** le *namespace* d'une ressource
 
@@ -164,7 +165,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: nginx-pod
-  namespace: development
+  namespace: development                                                             
 spec:
   containers:
   - name: nginx
@@ -225,11 +226,11 @@ users:
 ```bash
 # Informations sur le cluster
 kubectl version                    # Versions client/serveur
-kubectl cluster-info              # Infos du cluster
+kubectl cluster-info               # Infos du cluster
 
 # Explorer les APIs disponibles
-kubectl api-resources             # Toutes les ressources
-kubectl api-versions              # Versions d'API disponibles
+kubectl api-resources              # Toutes les ressources
+kubectl api-versions               # Versions d'API disponibles
 ```
 
 ---
@@ -251,13 +252,13 @@ kubectl delete <type> <nom>       # Supprimer une ressource
 
 ```bash
 # Gestion des contextes
-kubectl config get-contexts                    # Liste tous les contextes
-kubectl config current-context                 # Contexte actuel
-kubectl config use-context prod-admin          # Changer de contexte
+kubectl config get-contexts                      # Liste tous les contextes
+kubectl config current-context                   # Contexte actuel
+kubectl config use-context prod-admin            # Changer de contexte
 
 # Gestion des namespaces
 kubectl config set-context --current --namespace=production
-kubectl get namespaces                         # Lister tous les namespaces
+kubectl get namespaces                           # Lister tous les namespaces
 
 kubectl get <type> --namespace production        # ou -n production
 kubectl get <type> --all-namespaces              # ou -A
@@ -441,10 +442,10 @@ Quelques *patterns* classiques de découpage par namespaces :
 ## Namespaces : Isolation et organisation (2/2)
 
 **Isolation fournie :**
-- **Noms** : Deux ressources d'un même type **peuvent** avoir le même nom dans des namespaces **différents**
-- **Quotas** : Limites CPU/RAM/stockage par namespace
+- **Noms** : deux ressources d'un même type **peuvent** avoir le même nom dans des namespaces **différents**
+- **Quotas** : limites CPU/RAM/stockage par namespace
 - **Réseau** : avec de la configuration supplémentaires, on peut rajouter du filtrage réseau par namespace (cf **module 5**)
-- **RBAC** : Permissions d'accès par namespace (cf **module 6**)
+- **RBAC** : permissions d'accès par namespace (cf **module 6**)
 
 ---
 
@@ -501,12 +502,12 @@ spec:
 
 ## Cycle de vie d'un Pod
 
-**États d'un Pod :**
+États d'un Pod :
 
-- **Pending** : En attente de placement sur un Node
-- **Running** : Au moins un conteneur s'exécute
-- **Succeeded** : Tous les conteneurs se sont terminés avec succès
-- **Failed** : Au moins un conteneur a échoué
+- **Pending** : en attente (scheduling, volume manquant, ...)
+- **Running** : au moins un conteneur s'exécute
+- **Succeeded** : tous les conteneurs se sont terminés avec succès
+- **Failed** : au moins un conteneur a échoué
 - **Unknown** : État du Pod indéterminable
 
 ---
@@ -516,25 +517,27 @@ spec:
 ```bash
 # Voir l'état des Pods
 kubectl get pods
-kubectl get pods -o wide  # Plus de détails
+kubectl get pods -o wide            # Plus de détails
 kubectl describe pod nginx-pod
 
 # Logs et debug
 kubectl logs nginx-pod
-kubectl logs nginx-pod -f    # En temps réel
+kubectl logs nginx-pod -f           # En temps réel
 kubectl exec -it nginx-pod -- bash  # Se connecter au Pod
 ```
 
 ---
 
-## Deployments : pour gérer les Pods
+## Deployments : orchestration des Pods
 
-**Contrôleur qui gère des groupes de Pods identiques**
+Contrôleur de haut niveau pour gérer des applications
 
-- **Réplicas** : Maintient un nombre défini de Pods
-- **Rolling updates** : Mises à jour sans interruption
-- **Rollback** : Retour à une version précédente
-- **Scaling** : Augmentation/diminution du nombre de réplicas
+- **Déclaratif** : définition de l'état souhaité (image, replicas...)
+- **Rolling updates** : mises à jour sans interruption de service
+- **Rollback** : retour à une version précédente
+- **Versioning** : historique des déploiements
+
+> **En pratique :** Le Deployment délègue la gestion des Pods aux ReplicaSets (qu'on verra après)
 
 ---
 
@@ -546,7 +549,7 @@ kind: Deployment
 metadata:
   name: nginx-deployment
 spec:
-  replicas: 3            #<----- nombre de Pods correspondant au spec.template qu'on veut gérer  
+  replicas: 3            #<----- nombre de Pods correspondant au spec.template qu'on veut gérer    
   selector:
     matchLabels:
       app: nginx
@@ -567,33 +570,50 @@ spec:
 ## Deployments : opérations courantes
 
 ```bash
-# Créer un deployment
+# Créer un deployment (déclaratif)
 kubectl create deployment nginx --image=nginx:1.29
 
-# Modifier à chaud le nombre de replicas
+# Changer l'état souhaité (scaling - délégué au ReplicaSet)
 kubectl scale deployment nginx --replicas=5
 
-# Changer la version de l'image docker du container "nginx"
+# Changer la version (rolling update - nouveau ReplicaSet)
 kubectl set image deployment/nginx nginx=nginx:1.29.1
 
-# Historique des déploiements
-kubectl rollout history deployment/nginx
-kubectl rollout undo deployment/nginx
-kubectl rollout status deployment/nginx
+# Gestion du versioning
+kubectl rollout history deployment/nginx    # Voir les versions
+kubectl rollout undo deployment/nginx       # Rollback (ancien ReplicaSet)        
+kubectl rollout status deployment/nginx     # Suivi du déploiement
+
+# Pour voir les ReplicaSets gérés par les Deployments
+kubectl get rs 
 ```
+
+---
+
+## ReplicaSets : la gestion opérationnelle
+
+**Les Deployments délèguent la gestion des Pods aux ReplicaSets :**
+
+- **Réplicas** : Maintient le nombre exact de Pods en vie
+- **Scaling** : Augmentation/diminution en temps réel
+- **Template** : Utilise le modèle de Pod du Deployment
+- **Sélection** : Trouve et gère les Pods via les labels
+
+> **Rolling update :** Deployment crée un nouveau ReplicaSet, supprime l'ancien
+
 
 ---
 
 ## Autres contrôleurs de Pods
 
-**Au-delà des Deployments, d'autres contrôleurs gèrent des Pods :**
+Au-delà des Deployments, d'autres contrôleurs gèrent des Pods :
 
-- **DaemonSet** : Un Pod par Node (monitoring, logs, stockage...)
+- **DaemonSet** : un Pod par Node (monitoring, logs, stockage...)
 - **StatefulSet** : Pods avec identité stable (bases de données, Kafka...)
-- **Job** : Tâches ponctuelles (migrations, calculs batch...)
-- **CronJob** : Tâches programmées (sauvegardes, nettoyage...)
+- **Job** : tâches ponctuelles (migrations, calculs batch...)
+- **CronJob** : tâches programmées (sauvegardes, nettoyage...)
 
-> **Principe :** Chaque contrôleur répond à un besoin spécifique d'orchestration
+> **Principe :** chaque contrôleur répond à un besoin spécifique d'orchestration
 
 ---
 
@@ -601,9 +621,9 @@ kubectl rollout status deployment/nginx
 
 Les Pods sont des entités **éphémères**. Il faut donc une ressource capable de découvrir les Pods "vivants" et leur servir le trafic.
 
-- **Load balancing** : Répartit le trafic entre les Pods cibles
+- **Load balancing** : répartit le trafic entre les Pods cibles
 - **Nom DNS stable** : `<nomsvc>.<namespace>.svc.cluster.local`
-- **Service discovery**  : Trouve automatiquement les Pods cibles grâce aux labels
+- **Service discovery**  : trouve automatiquement les Pods cibles grâce aux labels
 
 ```yaml
 spec:
@@ -617,12 +637,11 @@ spec:
 
 Il existe plusieurs types de Services dans Kubernetes :
 
-- **ClusterIP** : Accès interne uniquement (défaut)
-- **NodePort** : Expose sur un port de chaque Node
+- **ClusterIP** : accès interne uniquement (défaut)
+- **NodePort** : expose sur un port de chaque Node
 - **LoadBalancer** : alloue une IP externe (souvent via un Loadbalancer chez un cloud provider)
-- **ExternalName** : Alias DNS vers un service externe
-
-**Services headless** (ClusterIP: None) : Pas de load balancing, résolution DNS directe vers les Pods (utilisé par StatefulSets)
+- **ExternalName** : alias DNS vers un service externe
+- Exception : **headless** (`ClusterIP: None`), pas de load balancing, résolution DNS directe vers les Pods (utilisé par *StatefulSets*)
 
 ---
 
@@ -683,14 +702,14 @@ kubectl expose deployment nginx --port=80 --type=NodePort --target-port=8080
 
 ## Ingress : Exposition HTTP/HTTPS
 
-**Routage HTTP(S) intelligent vers les Services**
+Routage HTTP(S) intelligent vers les Services
 
-- **Domaines** : Routage basé sur le nom d'hôte
-- **Chemins** : Routage basé sur l'URL
-- **TLS** : Terminaison SSL/TLS
-- **Load balancing** : Répartition du trafic
+- **Domaines** : routage basé sur le nom d'hôte
+- **Chemins** : routage basé sur l'URL
+- **TLS** : terminaison SSL/TLS
+- **Load balancing** : répartition du trafic
 
-> **Important :** Nécessite un Ingress Controller (nginx, traefik, etc.)
+> **Important :** nécessite un Ingress Controller (nginx, traefik, etc.)
 
 ---
 
