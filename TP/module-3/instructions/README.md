@@ -8,7 +8,6 @@ Déployer une stack de monitoring complète utilisant toutes les ressources de b
 
 - Cluster Kubernetes fonctionnel (kind installé dans le TP2, ou autre)
 - kubectl configuré
-- Ingress Controller installé (nginx-ingress recommandé)
 
 ## Architecture de l'application
 
