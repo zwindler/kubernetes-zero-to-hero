@@ -98,10 +98,10 @@ Ces startup / readiness / liveness probes sont gérées par **container**.
 
 Il existe 4 grands types de probes aujourd'hui :
 
-* **HTTP** - la plus courante, effectue un call sur un serveur HTTP
-* **TCP** - dans le cas où un call HTTP n'est pas possible
-* **gRPC** - pour les serveurs gRPC
-* **exec** - exécute une commande arbitraire sur le container quand celui ci ne contient pas de serveur
+- **HTTP** - la plus courante, effectue un call sur un serveur HTTP
+- **TCP** - dans le cas où un call HTTP n'est pas possible
+- **gRPC** - pour les serveurs gRPC
+- **exec** - exécute une commande arbitraire sur le container quand celui ci ne contient pas de serveur
 
 ---
 
@@ -112,8 +112,6 @@ Inhibe les autres sondes du container, jusqu'à ce que l'application soit démar
 **Cas d'usage :** apps avec un temps de démarrage long **et** variable.
 
 Trivia : arrivées un peu après les autres (API `beta` en 1.18 / 2020)
-
-TODO ajouter une image
 
 ---
 
@@ -197,6 +195,35 @@ livenessProbe:
 
 ---
 
+## Types de probes : exemples TCP et exec
+
+```yaml
+# Probe TCP - pour bases de données
+livenessProbe:
+  tcpSocket:
+    port: 5432
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+# Probe exec - commande personnalisée
+livenessProbe:
+  exec:
+    command:
+    - /bin/sh
+    - -c
+    - "pg_isready -U postgres"
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+# Probe gRPC (Kubernetes 1.24+)
+livenessProbe:
+  grpc:
+    port: 9090
+  initialDelaySeconds: 30
+```
+
+---
+
 ## Exemple Python/Flask
 
 ```python
@@ -251,19 +278,21 @@ Dans nos manifests YAML, on va définir les besoins (requests) et les limites (l
 
 ---
 
-## Unités de ressources (1/2)
+## Unités des ressources (1/2)
 
-**CPU :**
+**CPU (`cpu:`) :**
 - `1` ou `1000m` = 1 coeur de CPU 
 - `100m` = 1 dixième de coeur de CPU
 
-**Mémoire :**
+**Mémoire (`memory:` ou `hugepages-<size>:`) :**
 - `128Mi` = 128 * 1024 * 1024 bytes
 - `128M` = 128 * 1000 * 1000 bytes
 
 ---
 
 ## Unités de ressources (2/2)
+
+Plus anecdotique, la taille allouée aux modifications éphémères sur un container `ephemeral-storage:` :
 
 **Stockage éphémère :**
 - `2Gi` = 2 * 1024³ bytes
@@ -275,9 +304,12 @@ Dans nos manifests YAML, on va définir les besoins (requests) et les limites (l
 
 Kubernetes classe les Pods selon leurs ressources CPU et mémoire.
 
-En cas de pression sur la mémoire sur un Nodes, la QoS détermine dans quel ordre les Pods seront évincés du Node.
+En cas de pression sur la mémoire sur un Node, la QoS détermine dans quel ordre les Pods seront évincés du Node.
 
-TODO : parler des pods les plus importants à mettre en Guaranteed
+**Pods prioritaires pour QoS Guaranteed :**
+- Applications critiques (bases de données, API principales)
+- Services système essentiels (DNS, ingress controllers)
+- Workloads sensibles aux variations de performance
 
 ---
 
@@ -306,10 +338,10 @@ Conteneurs qui s'exécutent **avant** les conteneurs principaux.
 
 Peuvent être utiles dans les cas où il est nécessaire de préparer l'environnement pour l'application : 
 
-* changement des permissions sur un volume
-* initialisation d'une base de données
-* téléchargement de ressources externes
-* ...
+- changement des permissions sur un volume
+- initialisation d'une base de données
+- téléchargement de ressources externes
+- ...
 
 ---
 
@@ -344,7 +376,7 @@ spec:
 ## Sidecar Containers
 
 Fonctionnalité "relativement récente" (`alpha` en 1.28, `stable` depuis Kubernetes v1.33) :
-* init containers *spécial*, `restartPolicy: Always` qui subsistent après le démarrage du container principal.
+- init containers *spécial*, `restartPolicy: Always` qui subsistent après le démarrage du container principal.
 
 Utiles pour certains proxy de DB externes (la connexion doit être disponible au boot de l'application principale).
 
@@ -380,9 +412,37 @@ spec:
 
 ---
 
-## Bonnes pratiques pour la production
+## Bonnes pratiques pour la production (1/3)
 
-TODO
+**Probes :**
+
+- ✅ Toujours implémenter liveness ET readiness probes
+- ✅ Endpoints légers et rapides (< 1s)
+- ✅ Différencier `/health` (basique) et `/ready` (complet)
+- ❌ Ne jamais vérifier les dépendances externes dans liveness (incidents en casquade)
+
+---
+
+## Bonnes pratiques pour la production (2/3)
+
+**Limits et requests :**
+
+- ✅ Toujours définir `requests` cpu et mémoire
+  - cible = consommation moyenne / habituelle
+- ✅ Toujours définir `limits` pour la **mémoire**
+  - prévoir assez de marge pour les "bursts"
+- ❌ Jamais de `limits` **cpu** pour les applications sensibles à la latence (cf [Stop Using CPU Limits on Kubernetes](https://home.robusta.dev/blog/stop-using-cpu-limits))
+- QoS `Guaranteed` seulement pour les **très** applications critiques
+
+---
+
+## Bonnes pratiques pour la production (3/3)
+
+**Sécurité :**
+- ✅ `runAsNonRoot: true` par défaut
+- ✅ `readOnlyRootFilesystem: true` si possible
+- ✅ Supprimer les capabilities non nécessaires (`drop: [ALL]`)
+- ✅ Utiliser des images minimales (distroless, alpine)
 
 ---
 
