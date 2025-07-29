@@ -896,7 +896,7 @@ Instructions détaillées dans `TP/module-3/instructions`
 
 ---
 
-## Bibliographie
+## Bibliographie (1/2)
 
 Documentation officielle :
 
@@ -905,6 +905,10 @@ Documentation officielle :
 - [Services and Networking](https://kubernetes.io/docs/concepts/services-networking/)
 - [Configuration](https://kubernetes.io/docs/concepts/configuration/)
 - [Storage](https://kubernetes.io/docs/concepts/storage/)
+
+---
+
+## Bibliographie (2/2)
 
 Ressources d'apprentissage complémentaires :
 
