@@ -898,5 +898,15 @@ Instructions détaillées dans `TP/module-3/instructions`
 
 ## Bibliographie
 
+Documentation officielle :
+
 - [Kubernetes Official Documentation](https://kubernetes.io/docs/)
+- [Workloads](https://kubernetes.io/docs/concepts/workloads/)
+- [Services and Networking](https://kubernetes.io/docs/concepts/services-networking/)
+- [Configuration](https://kubernetes.io/docs/concepts/configuration/)
+- [Storage](https://kubernetes.io/docs/concepts/storage/)
+
+Ressources d'apprentissage complémentaires :
+
 - [Kubernetes Patterns - Bilgin Ibryam & Roland Huß](https://www.redhat.com/en/engage/kubernetes-containers-architecture-s-201910240918)
+- [kubectl Cheat Sheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/)

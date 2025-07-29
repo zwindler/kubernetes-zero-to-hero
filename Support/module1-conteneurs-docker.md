@@ -374,9 +374,24 @@ Allez dans le dossier `TP/1/instructions/`
 
 ---
 
-## Bibliographie
+## Bibliographie (1/2)
+
+Documentation officielle :
+
+- [Docker Documentation](https://docs.docker.com/)
+- [Dockerfile Reference](https://docs.docker.com/reference/dockerfile/)
+- [Docker Engine Install](https://docs.docker.com/engine/install/)
+
+---
+
+## Bibliographie (2/2)
+
+Talks :
 
 - [dotScale 2013 - Solomon Hykes - Why we built Docker](https://www.youtube.com/watch?v=3N3n9FzebAA)
-- [DockerCon EU 2021 - Jérôme Petazzoni - Cgroups, namespaces, and beyond: what are containers made from?](https://www.youtube.com/watch?v=sK5i-N34im8)
+- [DockerCon EU 2021 - Jérôme Petazzoni - Cgroups, namespaces, and beyond](https://www.youtube.com/watch?v=sK5i-N34im8)
+
+Ressources d'apprentissage complémentaires :
+
 - [Introduction to Docker and Containers](https://qconsf2017intro.container.training/#1)
 - [github.com/jpetazzo/container.training](https://github.com/jpetazzo/container.training)

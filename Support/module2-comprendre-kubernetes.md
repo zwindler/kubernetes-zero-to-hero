@@ -472,8 +472,12 @@ Allez dans le dossier `TP/module-2/instructions/`
 
 ## Bibliographie
 
+Documentation officielle :
+
 - [Kubernetes Official Documentation](https://kubernetes.io/docs/)
+- [Kubernetes Components](https://kubernetes.io/docs/concepts/overview/components/)
+- [Considerations for large clusters](https://kubernetes.io/docs/setup/best-practices/cluster-large/)
+
+Ressources d'apprentissage complémentaires :
 - [Kubernetes The Hard Way - Kelsey Hightower](https://github.com/kelseyhightower/kubernetes-the-hard-way)
 - [Kubernetes Deconstructed - Carson Anderson](https://www.youtube.com/watch?v=90kZRyPcRZw)
-- [Kubernetes documentation - Considerations for large clusters
-](https://kubernetes.io/docs/setup/best-practices/cluster-large/)
