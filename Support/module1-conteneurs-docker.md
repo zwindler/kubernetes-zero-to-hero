@@ -72,7 +72,7 @@ Il existe plein de technos pour isoler un processus : Docker est "juste" l'outil
 - ➖ isolation plus faible (sécurité ---)
 - ⚖️ **immuabilité**
 
-**Note** : Il existe des solution de type microVMs qui peuvent être un entre deux intéressant (ex : [Firecracker](https://firecracker-microvm.github.io/))
+ℹ️ Il existe des solution de type microVMs qui peuvent être un entre deux intéressant (ex : [Firecracker](https://firecracker-microvm.github.io/))
 
 ---
 
@@ -191,7 +191,7 @@ Docker utilise un **système de fichiers en couches** (layered FS) :
 - **[Docker Hub](https://hub.docker.com/)** : Registry public par défaut (payant sauf pour les individus et certains projets OSS)
 - **Registry privé** : Pour vos images internes
 
-**Note** : en prod, avoir un *proxy* (ex. [Harbor](https://goharbor.io/)) ou un *cache d'images* ([spegel](https://github.com/spegel-org/spegel)) pour se prémnir des  risques disponibilité / rate limiting
+ℹ️ En prod, avoir un *proxy* (ex. [Harbor](https://goharbor.io/)) ou un *cache d'images* ([spegel](https://github.com/spegel-org/spegel)) pour se prémnir des  risques disponibilité / rate limiting
 
 ```bash
 # Publier une image
@@ -283,7 +283,7 @@ nginx version: nginx/1.25.3
 root@a1b2c3d4e5f6:/# exit
 ```
 
-**Note** : cette foncitonnalité nécessite que le container soit "up", et que le binaire (ici `/bin/bash`) soit présent dans l'image
+ℹ️ *Cette foncitonnalité nécessite que le container soit "up", et que le binaire (ici `/bin/bash`) soit présent dans l'image
 
 ---
 

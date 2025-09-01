@@ -375,7 +375,7 @@ Fonctionnalité "relativement récente" (`alpha` en 1.28, `stable` depuis Kubern
 
 Utiles pour certains proxy de DB externes (la connexion doit être disponible au boot de l'application principale).
 
-**Note** : ne pas confondre avec le *pattern* sidecar container (container qui étend les fonctionnalités d'un Pod pour du logging, monitoring...)
+⚠️ Ne pas confondre avec le *pattern* sidecar container (container qui étend les fonctionnalités d'un Pod pour du logging, monitoring...)
 
 ---
 

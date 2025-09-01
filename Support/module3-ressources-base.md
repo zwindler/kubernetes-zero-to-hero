@@ -496,7 +496,7 @@ spec:
     - containerPort: 80
 ```
 
-**Note** : on créera rarement "directement" des Pods sur un cluster Kubernetes. Il existe d'autres ressources de plus haut niveau.
+ℹ️ On créera rarement "directement" des Pods sur un cluster Kubernetes. Il existe d'autres ressources de plus haut niveau.
 
 ---
 
