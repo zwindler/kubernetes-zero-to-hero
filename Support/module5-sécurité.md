@@ -28,6 +28,15 @@ blockquote:before{
 blockquote:after{
   content: unset;
 }
+
+table {
+  font-size: 30px;
+}
+
+ul {
+  margin-top: 17px;
+  margin-bottom: 17px;
+}
 </style>
 
 <!-- _class: lead -->
@@ -40,11 +49,11 @@ blockquote:after{
 
 ## Plan du Module 5 (1/2)
 
-**Partie 1 : Contrôle d'accès (RBAC)**
+**Partie 1 : contrôle d'accès (RBAC)**
 - Ressources RBAC
 - Tooling d'audit du RBAC
 
-**Partie 2 : Security Context**
+**Partie 2 : restreindre les Pods pour améliorer la sécurité**
 - Configuration sécurisée des Pods
 - Capabilities, utilisateurs, filesystem, UserNamespace
 
@@ -53,10 +62,11 @@ blockquote:after{
 
 ## Plan du Module 5 (2/2)
 **Partie 3 : Admission Control**
+- Pod Security Standards (successeur PSP)
 - CEL (Common Expression Language)
 - Politiques Kyverno, détection de menaces
 
-**Partie 4 : Bonnes pratiques**
+**Partie 4 : bonnes pratiques diverses**
 - Container security, cluster hardening
 
 ---
@@ -205,18 +215,18 @@ kubectl auth can-i --list --as=alice -n production
 
 <!-- _class: lead -->
 
-# Partie 2: Security Context
+# Partie 2: restreindre les Pods pour améliorer la sécurité
 
 ---
 
-## Security Context : Configuration sécurisée des Pods
+## Security Context : sécuriser les Pods
 
 Le **Security Context** définit les privilèges et contrôles d'accès pour un Pod ou Container.
 
 Ces Security Contexts peuvent être définis à 2 niveaux :
 
-* pod (pour tous les containers du pod)
-* container
+- Pod (pour tous les containers du pod)
+- container
 
 ---
 
@@ -241,8 +251,6 @@ spec:
 
 ## Security Context au niveau du container
 
-Info : le **Container-level** a la priorité sur **Pod-level** :
-
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -258,6 +266,9 @@ spec:
     securityContext:
       <paramètres de sécurité>      # Priorité sur Pod-level                       
 ```
+
+
+ℹ️ le **Container-level** a la priorité sur **Pod-level**
 
 ---
 
@@ -295,7 +306,7 @@ metadata:
 spec:
   containers:
   - name: nginx
-    image: nginx:1.30
+    image: nginx:1.29
     ports:
     - containerPort: 80
 ```
@@ -316,9 +327,9 @@ spec:
     fsGroup: 1001
   containers:
   - name: nginx
-    image: nginx:1.30
+    image: nginx:1.29
     ports:
-    - containerPort: 8080  # Port non-privilégié
+    - containerPort: 8080  # Port non-privilégié                                                
     securityContext:
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
@@ -374,7 +385,7 @@ spec:
       value: "1024"
 ```
 
-[Plus d'infos dans la doc officielle kubernetes.io/docs/tasks/administer-cluster/sysctl-cluster](https://kubernetes.io/docs/tasks/administer-cluster/sysctl-cluster/) 
+* [kubernetes.io/docs/tasks/administer-cluster/sysctl-cluster](https://kubernetes.io/docs/tasks/administer-cluster/sysctl-cluster/) 
 
 ---
 
@@ -527,7 +538,65 @@ Il existe plusieurs façon d'étendre l'admission control dans Kubernetes
 
 - développer soi même un webhook
 - utiliser un outil comme Kyverno ou OPA/Gatekeeper
+- **Pod Security Standards** (successeur de PSP)
 - **CEL** (Common Expression Language)!
+
+---
+
+## Pod Security Standards (1/3)
+
+- Successeur de **PodSecurityPolicy** (PSP) devenues obsolète en v1.25+
+- Activation via des labels sur les Namespaces directement
+  - s'applique donc à tout le namespace !
+
+---
+
+## Pod Security Standards (2/3)
+
+**3 politiques de sécurité** :
+- `privileged` : ouverte sans restrictions
+- `baseline` : minimale, empêche les escalades de privilèges connues  
+- `restricted` : très restrictive, suit les best practices sécurité
+
+**3 modes disponibles** :
+- `enforce` : bloque les Pods non conformes
+- `audit` : journalise les violations dans les logs d'audit
+- `warn` : affiche des warnings à l'utilisateur
+
+---
+
+## Pod Security Standards (3/4)
+
+**Configuration par namespace** avec des labels :
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: production
+  labels:
+    # Mode d'application
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted  
+    pod-security.kubernetes.io/warn: restricted
+    # Version du standard
+    pod-security.kubernetes.io/enforce-version: v1.29
+```
+
+---
+
+## Pod Security Standards (4/4)
+
+**Différences pratiques entre niveaux** :
+
+| Contrôle | Baseline | Restricted |
+|----------|----------|------------|
+| runAsNonRoot | - | ✅ Obligatoire |
+| runAsUser | > 0 | > 0 |
+| allowPrivilegeEscalation | false | false |
+| capabilities | Drop ALL sauf NET_BIND_SERVICE | Drop ALL |
+| volumes | Plusieurs autorisés | Très restrictif |
+| hostNetwork/hostPID | Interdit | Interdit |
 
 ---
 
@@ -767,7 +836,7 @@ Processus (ou container) privilégié sur les **Nodes**
 
 ```bash
 # Exemple avec Trivy
-trivy image nginx:1.30
+trivy image nginx:1.29
 # Scanne les vulnérabilités CVE dans l'image
 
 # Exemple avec un pipeline CI/CD
@@ -798,40 +867,44 @@ trivy image --severity HIGH,CRITICAL --exit-code 1 myapp:latest
 - **Diminuer la surface d'attaque** (distroless, scratch, multi-stage)
 - Pas de root dans les Dockerfiles
 - Secrets management (pas de hardcoding)
-- Scan de vulnérabilités (Trivy, Snyk, etc.)
+- Scan de vulnérabilités (Trivy, etc.)
 - Signatures d'images (cosign, notation)
 - SBOM (Software Bill of Materials)
 
 ---
 
-## Bonnes pratiques de création des clusters
+## Bonnes pratiques pour les clusters (1/2)
 
 **Réseau :**
-- Network Policies (segmentation)
+- Network Policies (vu dans le module suivant)
 - Ingress avec TLS
-- mTLS ! (nécessite parfois un Service Mesh)
+- mTLS entre pods (nécessite parfois un Service Mesh)
 
 **Nodes :**
-- hardening OS (CIS) **ou** OS minimaliste immutables ([Talos Linux](https://www.talos.dev/))
+- OS minimaliste immutables ([Talos Linux](https://www.talos.dev/)) **ou** hardening (CIS bench)
 - modules de sécurité Kernel (AppArmor, SELinux)
-- Mise à jour régulières
+-mMise à jour régulières
+
+---
+
+## Bonnes pratiques pour les clusters (2/2)
 
 **Control plane :**
 - etcd encryption at rest
-- API server audit logging
+- API server audit logging activé (et surveillé !)
 - Admission controllers activés
 
 ---
 
-## Bonnes pratiques pour la production
+## Bonnes pratiques pour les applications
 
-**Security Context (rappel) :**
+**Security Context :**
 - `runAsNonRoot: true` par défaut
 - `readOnlyRootFilesystem: true` si possible
 - Supprimer les capabilities non nécessaires (`drop: [ALL]`)
 
 **RBAC :**
-- Principe de moindre privilège
+- **Principe de moindre privilège**
 - ServiceAccounts dédiés par application
 - Audit régulier des permissions
 
