@@ -385,7 +385,7 @@ spec:
       value: "1024"
 ```
 
-* [kubernetes.io/docs/tasks/administer-cluster/sysctl-cluster](https://kubernetes.io/docs/tasks/administer-cluster/sysctl-cluster/) 
+- [kubernetes.io/docs/tasks/administer-cluster/sysctl-cluster](https://kubernetes.io/docs/tasks/administer-cluster/sysctl-cluster/) 
 
 ---
 
@@ -452,7 +452,7 @@ Si un attaquant s'échappe d'un container qui tourne en `root`, il devient `root
 Dans les cas où il n'est pas possible de **ne pas** exécuter un container en `root`, on peut utiliser la fonctionnalité **UserNamespaces** (alpha en 1.25, beta depuis 1.30). Les UID/GID du container sont alors uniques (offset côté hôte, transparent pour le container)
 
 
-* [kubernetes.io - User Namespaces](https://kubernetes.io/docs/concepts/workloads/pods/user-namespaces/)
+- [kubernetes.io - User Namespaces](https://kubernetes.io/docs/concepts/workloads/pods/user-namespaces/)
 
 ---
 
@@ -661,13 +661,13 @@ Politique réutilisable avec différents bindings selon les namespaces
 
 Il existe 2 logiciels permettant de faciliter la création et l'application de politiques de conformités dans Kubernetes :
 
-* Open Policy Agent ![height:50](binaries/opa-logo.png) 
-* Kyverno ![height:50](binaries/kyverno-logo.png)
+- Open Policy Agent ![height:50](binaries/opa-logo.png) 
+- Kyverno ![height:50](binaries/kyverno-logo.png)
 
 OPA est un outil générique, Kyverno est *Kubernetes-native*
 
-* [Blog zwindler - Vos politiques de conformité sur k8s avec OPA et Gatekeeper](https://blog.zwindler.fr/2020/07/20/vos-politiques-de-conformite-sur-kubernetes-avec-opa-et-gatekeeper/)
-* [Blog zwindler - Vos politiques de conformité sur k8s avec Kyverno](https://blog.zwindler.fr/2022/08/01/vos-politiques-de-conformite-sur-kubernetes-avec-kyverno/)
+- [Blog zwindler - Vos politiques de conformité sur k8s avec OPA et Gatekeeper](https://blog.zwindler.fr/2020/07/20/vos-politiques-de-conformite-sur-kubernetes-avec-opa-et-gatekeeper/)
+- [Blog zwindler - Vos politiques de conformité sur k8s avec Kyverno](https://blog.zwindler.fr/2022/08/01/vos-politiques-de-conformite-sur-kubernetes-avec-kyverno/)
 
 ---
 

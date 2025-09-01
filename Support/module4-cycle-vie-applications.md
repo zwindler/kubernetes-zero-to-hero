@@ -628,8 +628,8 @@ En pratique, ça demande un peu de configuration et un composant additionnel app
 
 <br/>
 
-* [deezer.io - Optimizing Kubernetes resources with Horizontal Pod Autoscaling via Custom Metrics and the Prometheus Adapter](https://deezer.io/optimizing-kubernetes-resources-with-horizontal-pod-autoscaling-via-custom-metrics-and-the-a76c1a66ff1c)
-* [blog.zwindler.fr - le même article, mais en français ;-P](https://blog.zwindler.fr/2024/10/11/optimisation-ressources-kubernetes-autoscaling-horizontal-custom-metrics-prometheus-adapter/)
+- [deezer.io - Optimizing Kubernetes resources with Horizontal Pod Autoscaling via Custom Metrics and the Prometheus Adapter](https://deezer.io/optimizing-kubernetes-resources-with-horizontal-pod-autoscaling-via-custom-metrics-and-the-a76c1a66ff1c)
+- [blog.zwindler.fr - le même article, mais en français ;-P](https://blog.zwindler.fr/2024/10/11/optimisation-ressources-kubernetes-autoscaling-horizontal-custom-metrics-prometheus-adapter/)
 
 
 ---
