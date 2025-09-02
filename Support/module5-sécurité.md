@@ -243,7 +243,7 @@ spec:
   [...]
   containers:
   - name: sec-ctx-demo
-    image: busybox:1.28
+    image: busybox:1.37
     command: [ "sh", "-c", "sleep 1h" ]
 ```
 
@@ -261,7 +261,7 @@ spec:
     runAsUser: 1000
   containers:
   - name: sec-ctx-demo-2
-    image: busybox:1.28
+    image: busybox:1.37
     command: [ "sh", "-c", "sleep 1h" ]
     securityContext:
       <paramètres de sécurité>      # Priorité sur Pod-level                       

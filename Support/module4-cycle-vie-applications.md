@@ -350,7 +350,7 @@ metadata:
 spec:
   initContainers:
   - name: config-setup
-    image: busybox:1.35
+    image: busybox:1.37
     command: ['sh', '-c', 'cp /config-templates/* /shared-config/']                                         
     volumeMounts:
     - name: shared-config
