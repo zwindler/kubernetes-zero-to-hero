@@ -470,7 +470,7 @@ spec:
     runAsGroup: 1000
   containers:
   - name: app
-    image: alpine:3.18
+    image: alpine:3.22
     command: ["sleep", "3600"]
 ```
 

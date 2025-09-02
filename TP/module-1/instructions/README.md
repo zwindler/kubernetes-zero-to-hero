@@ -43,9 +43,9 @@ Créez également un fichier `requirements.txt` pour spécifier les dépendances
 
 Pour une application Python, plusieurs options s'offrent à vous :
 
-- `python:3.11` - Image officielle Python complète
-- `python:3.11-slim` - Version allégée
-- `python:3.11-alpine` - Version ultra-légère basée sur Alpine Linux
+- `python:3.13` - Image officielle Python complète
+- `python:3.13-slim` - Version allégée
+- `python:3.13-alpine` - Version ultra-légère basée sur Alpine Linux
 
 Question ouverte : quelle image avez vous choisie et pourquoi ? (Il n'y a pas de mauvaise réponse).
 

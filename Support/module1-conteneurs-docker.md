@@ -180,7 +180,7 @@ Docker utilise un **système de fichiers en couches** (layered FS) :
 ├─────────────────┤                             |
 |     couche 2    | ← COPY package.json         |
 ├─────────────────┤                             |
-|     couche 1    | ← FROM node:22-alpine (RO)  |
+|     couche 1    | ← FROM node:24-alpine (RO)  |
 └─────────────────┘
 ```
 
@@ -228,7 +228,7 @@ Status: Downloaded newer image for nginx:latest
 
 ```bash
 # Lancer un conteneur qui liste le répertoire courant
-$ docker run -v $(pwd):/app ubuntu:22.04 ls -la /app
+$ docker run -v $(pwd):/app ubuntu:24.04 ls -la /app
 total 16
 -rw-r--r-- 1 root root 1234 Jul 16 10:30 README.md
 drwxr-xr-x 3 root root   96 Jul 16 10:30 Support
@@ -245,8 +245,8 @@ Utile pour utiliser un binaire sans l'installer
 
 ```bash
 # Lancer Python directement sans l'installer
-$ docker run -it python:3.11 python
-Python 3.11.9 (main, Jun 20 2024, 17:15:05) [GCC 12.2.0] on linux
+$ docker run -it python:3.13 python
+Python 3.13.0 (main, Oct  8 2024, 22:15:05) [GCC 12.2.0] on linux
 Type "help", "copyright", "credits" or "license" for more information.
 >>> print("Hello from container!")
 Hello from container!

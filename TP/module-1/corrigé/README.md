@@ -38,7 +38,7 @@ Flask==2.3.3
 
 ```dockerfile
 # Utiliser une image Python officielle slim pour réduire la taille
-FROM python:3.11-slim
+FROM python:3.13-slim
 
 # Définir le répertoire de travail dans le conteneur
 WORKDIR /app
