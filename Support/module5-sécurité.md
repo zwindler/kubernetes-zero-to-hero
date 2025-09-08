@@ -910,6 +910,32 @@ trivy image --severity HIGH,CRITICAL --exit-code 1 myapp:latest
 
 ---
 
+<!-- _class: lead -->
+
+# TP 5 : Sécurité dans Kubernetes
+
+---
+
+## Objectif du TP : sécuriser un cluster Kubernetes
+
+- Implémenter RBAC avec ServiceAccounts et Roles
+- Configurer Security Context pour des Pods sécurisés
+- Scanner les vulnérabilités avec Trivy
+
+*Instructions détaillées dans TP/module-5/*
+
+---
+
+<!-- _class: lead -->
+
+## Questions ?
+
+*Prêts pour parler des CRI, CNI et CSI dans Kubernetes ?*
+
+![bg fit right:40%](binaries/kubernetes_small.png)
+
+---
+
 ## Resources et outils (1/3)
 
 **Documentation officielle :**
