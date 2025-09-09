@@ -965,6 +965,24 @@ spec:
 
 ---
 
+## Stockage sur des volumes persistants
+
+- **PersistentVolume (PV)** : la vrai ressource de stockage
+- **PersistentVolumeClaim (PVC)** : une "demande" de stockage
+- **StorageClass** : le type de stockage (si plusieurs sont disponibles)
+
+```yaml
+spec:
+  volumes:
+  - name: app-storage
+    persistentVolumeClaim:
+      claimName: my-app-pvc
+```
+
+> **plus de détails dans le module 6** (CSI, Rook Ceph, etc.)
+
+---
+
 ## ConfigMaps : configuration externalisée
 
 **Stockage de configuration sous forme de clé-valeur :**
