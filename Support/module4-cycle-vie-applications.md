@@ -330,6 +330,47 @@ En cas de pression sur la mémoire sur un Node, la QoS détermine dans quel ordr
 
 ---
 
+## Gestion des ressources (1/2)
+
+**ResourceQuota** : Limites globales par namespace
+```yaml
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: compute-quota
+  namespace: development
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: 8Gi
+    limits.cpu: "8"
+    limits.memory: 16Gi
+    pods: "10"
+```
+
+---
+
+## Gestion des ressources (2/2)
+
+**LimitRange** : Valeurs par défaut et contraintes pour Pods/Containers
+```yaml
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: default-limits
+spec:
+  limits:
+  - default:
+      cpu: 200m
+      memory: 256Mi
+    defaultRequest:
+      cpu: 100m
+      memory: 128Mi
+    type: Container
+```
+
+---
+
 <!-- _class: lead -->
 
 # Différents types de containers
