@@ -41,13 +41,13 @@ ul {
 
 <!-- _class: lead -->
 
-# Module 6 : CRI, CNI, CSI
+# Module 6 : CRI, CNI, CSI, extensibilité de Kubernetes
 
 *Formation Kubernetes - Débutant à Avancé*
 
 ---
 
-## Plan du Module 6
+## Plan du Module 6 (1/2)
 
 **Partie 1 : Vue d'ensemble de l'écosystème**
 - CRI, CNI, CSI : 3 interfaces importantes dans k8s
@@ -56,9 +56,19 @@ ul {
 - Focus sur Cilium et eBPF et alternatives
 - Network Policies avancées et observabilité
 
+![bg fit right:22%](binaries/kubernetes_small.png)
+
+---
+
+## Plan du Module 6 (2/2)
+
 **Partie 3 : CSI et Rook Ceph**
 - Focus sur Rook Ceph et alternatives
 - Types de stockage : block, file, object
+
+**Partie 4 : Extensibilité avec les CRD**
+- Custom Resource Definitions et pattern Operator
+- Exemples concrets dans l'écosystème
 
 ![bg fit right:22%](binaries/kubernetes_small.png)
 
@@ -484,6 +494,93 @@ aws s3 ls --endpoint-url http://rook-ceph-rgw.rook-ceph.svc.cluster.local
 **Cloud-native** :
 - Déploiement via Helm/Operator
 - Gestion via CRDs Kubernetes
+
+---
+
+<!-- _class: lead -->
+
+# Partie 4 : Extensibilité avec les CRD
+## Étendre les capacités de Kubernetes
+
+---
+
+## Custom Resource Definitions (CRD)
+
+Permettent de créer de **nouveaux types de ressources** dans k8s :
+
+- **Extension de l'API** : Nouveaux objets avec `kubectl get myCustRes`
+- **Validation** : Schémas OpenAPI pour valider les données
+- **Versioning** : Support de plusieurs versions d'API
+- **Storage** : Persistance automatique dans etcd
+
+---
+
+## CRD - exemple de manifest
+
+
+```yaml
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: databases.example.com
+spec:
+  group: example.com
+  versions: [...]
+  scope: Namespaced
+```
+
+---
+
+## Pattern Operator : CRD + Controller
+
+Un **Operator** = **CRD** + **Controller** + **logique métier**
+
+**Principe hyper important dans Kubernetes !!!**
+1. **CRD** : Définit le format des ressources custom
+2. **Controller** : Surveille les changements et applique la logique
+3. **Reconciliation loop** : Maintient l'état désiré
+
+---
+
+## Exemples d'Operators dans l'écosystème
+
+**Rook Operator** (déjà vu) :
+```yaml
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: rook-ceph
+spec:
+  dataDirHostPath: /var/lib/rook
+  monitoring:
+    enabled: true
+```
+
+Prometheus Operator, Grafana Operator, ...
+
+---
+
+## Avantages du pattern Operator
+
+**Pour les utilisateurs** :
+- **Simplicité** : `kubectl apply` pour des systèmes complexes
+- **API native** : Intégration transparente avec Kubernetes
+- **Déclaratif** : Configuration via YAML, comme tout objet K8s
+
+**Pour les opérateurs** :
+- **Automatisation** : Gestion automatique du cycle de vie
+- **Résilience** : Auto-healing et reconciliation continue
+- **Évolutivité** : Montée de version et migration automatiques
+
+---
+
+## Créer son propre Operator
+
+**Outils de développement** :
+- **[Operator SDK](https://sdk.operatorframework.io/)** : Framework officiel (Go, Ansible, Helm)
+- **[Kubebuilder](https://kubebuilder.io/)** : Alternative populaire (Go)
+- **[Kopf](https://kopf.readthedocs.io/)** : Framework Python
+- **[Java Operator SDK](https://javaoperatorsdk.io/)** : Framework Java
 
 ---
 
