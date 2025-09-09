@@ -28,6 +28,15 @@ blockquote:before{
 blockquote:after{
   content: unset;
 }
+
+table {
+  font-size: 30px;
+}
+
+ul {
+  margin-top: 17px;
+  margin-bottom: 17px;
+}
 </style>
 
 <!-- _class: lead -->
