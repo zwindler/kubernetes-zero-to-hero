@@ -512,6 +512,201 @@ spec:
 
 ---
 
+## Contrôler **où** les Pods s'exécutent
+
+Par défaut, le *scheduler* Kubernetes place les Pods automatiquement. Mais parfois on veut **contrôler** ce placement :
+
+- **Infrastructure** : GPU, SSD, CPU spécifiques
+- **Conformité** : certaines données sur certains Nodes
+- **Colocalisation** : Pods qui communiquent beaucoup ensemble
+- **Anti-colocalisation** : répartir pour la haute disponibilité
+- **Ressources spécialisées** : Nodes avec des capacités particulières
+
+---
+
+## nodeSelector : Le plus simple
+
+Placer un Pod sur un Node avec un label spécifique :
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-gpu
+spec:
+  nodeSelector:
+    hardware: gpu    #<----- Le Pod ne peut s'exécuter que sur un Node avec ce label
+  containers:
+  - name: nginx
+    image: nginx
+```
+
+```bash
+# Ajouter un label à un Node
+kubectl label nodes worker-1 hardware=gpu
+```
+
+---
+
+## Node Affinity : Plus de flexibilité (1/2)
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-with-affinity
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:  #<----- Contrainte obligatoire               
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: zone
+            operator: In
+            values: ["eu-west-1a", "eu-west-1b"]
+      preferredDuringSchedulingIgnoredDuringExecution: #<----- Préférence (soft)
+      - weight: 1  #<----- de 1 à 100. S'ajoutera du Node pour déterminer le scheduling
+        preference:
+          matchExpressions:
+          - key: hardware
+            operator: In
+            values: ["ssd"]
+```
+
+---
+
+## Node Affinity : Plus de flexibilité (2/2)
+
+**Types de contraintes :**
+- `required...` : **obligatoire** (hard constraint)
+- `preferred...` : **préféré** (soft constraint, weight 1-100)
+
+**Opérateurs disponibles :**
+- `In`, `NotIn` : valeur dans/pas dans la liste
+- `Exists`, `DoesNotExist` : clé existe/n'existe pas
+- `Gt`, `Lt` : plus grand/petit que (valeurs numériques)
+
+---
+
+## Pod Affinity : Relations entre Pods (1/2)
+
+Placer des Pods **proches** (même Node/zone) les uns des autres :
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web-server
+spec:
+  affinity:
+    podAffinity:                    #<----- Attirer vers d'autres Pods             
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: app
+            operator: In
+            values: ["cache"]
+        topologyKey: kubernetes.io/hostname  #<----- Même Node
+```
+
+---
+
+## Pod Affinity : Relations entre Pods (2/2)
+
+**Pod Anti-Affinity** pour **éloigner** des Pods :
+
+```yaml
+spec:
+  affinity:
+    podAntiAffinity:               #<----- Éloigner d'autres Pods
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: app
+            operator: In
+            values: ["web"]
+        topologyKey: kubernetes.io/hostname
+```
+
+---
+
+## Taints et Tolerations : Exclusion de Pods (1/2)
+
+**Taint** : "poison" sur un Node qui repousse les Pods
+**Toleration** : "antidote" sur un Pod qui peut tolérer certains taints
+
+```bash
+# Ajouter un taint à un Node
+kubectl taint nodes worker-1 dedicated=gpu:NoSchedule
+
+# Types d'effets :
+# NoSchedule     : nouveaux Pods refusés
+# PreferNoSchedule : éviter si possible  
+# NoExecute      : éjecter les Pods existants
+```
+
+**Cas d'usage :** Nodes dédiés (GPU, haute performance), maintenances
+
+---
+
+## Taints et Tolerations : Exclusion de Pods (2/2)
+
+Pod qui **tolère** un taint :
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gpu-workload
+spec:
+  tolerations:
+  - key: "dedicated"
+    operator: "Equal"
+    value: "gpu"
+    effect: "NoSchedule"
+  containers:
+  - name: gpu-app
+    image: tensorflow/tensorflow:latest-gpu
+```
+
+---
+
+## Pod Disruption Budget
+
+Permet de gérer les "disruption volontaires" (= maintenances)
+
+```yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: nginx-pdb
+spec:
+  minAvailable: 2        #<----- Au moins 2 Pods toujours en vie                
+  # OU maxUnavailable: 1 #<----- Au plus 1 Pod indisponible
+  selector:
+    matchLabels:
+      app: nginx
+```
+
+Bloque les drains et les suppressions de Nodes de l'autoscaler
+
+---
+
+## Scheduling : Synthèse des cas d'usage
+
+| **Besoin** | **Solution** | **Exemple** |
+|------------|--------------|-------------|
+| Pod sur Node spécifique | `nodeSelector` | GPU, zone géographique |
+| Contraintes complexes | `Node Affinity` | Plusieurs zones possibles |
+| Pods ensemble | `Pod Affinity` | ex. app + cache |
+| Pods séparés | `Pod Anti-Affinity` | Réplication HA |
+| Node réservé | `Taints/Tolerations` | Nodes dédiés |
+| Disponibilité | `PodDisruptionBudget` | Maintenance sans coupure |
+
+> A combiner selon les besoins
+
+---
+
 ## Commandes pour les Pods
 
 ```bash
@@ -608,10 +803,10 @@ kubectl get rs
 
 Au-delà des Deployments, d'autres contrôleurs gèrent des Pods :
 
-- **DaemonSet** : un Pod par Node (monitoring, logs, stockage...)
-- **StatefulSet** : Pods avec identité stable (bases de données, Kafka...)
-- **Job** : tâches ponctuelles (migrations, calculs batch...)
-- **CronJob** : tâches programmées (sauvegardes, nettoyage...)
+- **[DaemonSet](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/)** : un Pod par Node (monitoring, logs, stockage...)
+- **[StatefulSet](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/)** : Pods avec identité stable (bases de données, Kafka...)
+- **[Job](https://kubernetes.io/docs/concepts/workloads/controllers/job/)** : tâches ponctuelles (migrations, calculs batch...)
+- **[CronJob](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/)** : tâches programmées (sauvegardes, nettoyage...)
 
 > **Principe :** chaque contrôleur répond à un besoin spécifique d'orchestration
 
