@@ -1,0 +1,74 @@
+# Network Policy par défaut - deny-all
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: wordpress
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+# Network Policy pour MariaDB
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: mariadb-netpol
+  namespace: wordpress
+spec:
+  podSelector:
+    matchLabels:
+      app: mariadb
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Il n'y a QUE wordpress qui peut accéder à MariaDB
+  - from:
+    - podSelector:
+        matchLabels:
+          app: wordpress
+    ports:
+    - protocol: TCP
+      port: 3306
+  egress:
+  # On autorise MariaDB à faire des requêtes DNS, et c'est tout
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+---
+# Network Policy pour WordPress
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: wordpress-netpol
+  namespace: wordpress
+spec:
+  podSelector:
+    matchLabels:
+      app: wordpress
+  policyTypes:
+  - Ingress
+  - Egress
+  # On n'autorise PLUS l'Ingress Controller à accéder à WordPress, c'est géré par la CiliumNetworkPolicy L7
+  #ingress:
+  # - from: []
+  #   ports:
+  #   - protocol: TCP
+  #     port: 80
+  egress:
+  # Accès à MariaDB
+  - to:
+    - podSelector:
+        matchLabels:
+          app: mariadb
+    ports:
+    - protocol: TCP
+      port: 3306
+  # On autorise Wordpress à faire des requêtes DNS, et c'est tout
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53

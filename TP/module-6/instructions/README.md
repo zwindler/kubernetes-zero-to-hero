@@ -43,13 +43,24 @@ Créez un fichier `kind-config.yaml` pour configurer le cluster avec montage de 
 # - Avoir 1 control-plane et 2 worker nodes
 # - Désactiver le CNI par défaut (disableDefaultCNI: true)
 # - Configurer extraMounts pour le stockage local
-# - Exposer les ports 80 et 443 pour les Ingress
+# - Exposer les ports 30080 et 30443 pour les Ingress
 ```
 
 **Indices** :
 - Utilisez `kind: Cluster` et `apiVersion: kind.x-k8s.io/v1alpha4`
 - Le paramètre `networking.disableDefaultCNI` doit être à `true`
-- Pour les extraMounts, utilisez `/mnt/data` sur l'hôte vers `/mnt/data` dans le container
+- Pour les extraMounts, utilisez `/tmp/kind-data` sur l'hôte vers `/mnt/data` dans le container
+- Le mapping de ports ressemblera à ça :
+
+```yaml
+  extraPortMappings:
+  - containerPort: 30080
+    hostPort: 80
+    protocol: TCP
+  - containerPort: 30443
+    hostPort: 443
+    protocol: TCP
+```
 
 ### 1.2 Créer le cluster
 
@@ -77,8 +88,34 @@ kubectl get nodes
 
 **Indices** :
 - URL du CLI : `https://github.com/cilium/cilium-cli/releases/latest/download/cilium-linux-amd64.tar.gz`
-- Installation : `cilium install --set kubeProxyReplacement=strict`
+- Installation : `cilium install --set kubeProxyReplacement=true`
 - Les nodes doivent passer à `Ready` après l'installation
+
+#### 1.4 Déployer l'ingress controller nginx
+
+Installer l'Ingress Controller NGINX pour kind
+
+```
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+```
+
+Patcher le NodePort pour que le port HTTP non sécurisé soit le 30080 et le HTTPS soit le 30443
+
+```bash
+# Patcher le service ingress-nginx-controller pour fixer les ports NodePort
+kubectl patch service ingress-nginx-controller -n ingress-nginx --type='json' \
+  -p='[
+    {"op": "replace", "path": "/spec/ports/0/nodePort", "value": 30080},
+    {"op": "replace", "path": "/spec/ports/1/nodePort", "value": 30443}
+  ]'
+
+# Vérifier que les ports sont bien configurés
+kubectl get service ingress-nginx-controller -n ingress-nginx
+```
+
+**Vérification** :
+- Le service doit montrer les ports 30080 (HTTP) et 30443 (HTTPS)
+- Attendre que l'Ingress Controller soit prêt avant de continuer
 
 ## Partie 2 : Configuration du stockage persistant
 
@@ -135,18 +172,86 @@ kubectl create secret generic mysql-pass \
 
 ### 3.2 Déployer MariaDB
 
-Créez le manifest `mariadb.yaml` avec :
+Modifiez le manifest `mariadb.yaml` de manière à obtenir :
 
 - Un PersistentVolumeClaim (5Gi)
 - Un Service de type ClusterIP
-- Un Deployment avec l'image `mariadb:12.0.2`
-- Les variables d'environnement appropriées
+- Un Deployment avec l'image `mariadb:12.0.2`, les volumes + volumeMounts et les variables d'environnement appropriées
 
-**Variables d'environnement requises** :
-- `MYSQL_ROOT_PASSWORD` (depuis le secret)
-- `MYSQL_DATABASE: wordpress`
-- `MYSQL_USER: wordpress`
-- `MYSQL_PASSWORD` (depuis le secret)
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  # TODO
+spec:
+  # TODO
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb
+  namespace: wordpress
+  labels:
+    app: mariadb
+spec:
+  ports:
+    - #TODO
+  selector:
+    # TODO
+  type: #TODO
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb
+  namespace: wordpress
+  labels:
+    app: mariadb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mariadb
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mariadb
+    spec:
+      containers:
+      - image: mariadb:10.6
+        name: mariadb
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          # TODO
+        - name: MYSQL_DATABASE
+          value: wordpress
+        - name: MYSQL_USER
+          value: wordpress
+        - name: MYSQL_PASSWORD
+          # TODO
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: mysql-persistent-storage
+          # TODO
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      volumes:
+      - name: mysql-persistent-storage
+        # TODO
+```
+
+Indices : 
+
+- mysql doit avoir son stockage dans `/var/lib/mysql`
 
 ### 3.3 Déployer WordPress
 
@@ -154,14 +259,104 @@ Créez le manifest `wordpress.yaml` avec :
 
 - Un PersistentVolumeClaim (10Gi)  
 - Un Service de type ClusterIP
-- Un Deployment avec l'image `wordpress:php8.4-fpm`
-- Un Ingress pour l'accès externe
+- Un Deployment avec l'image `wordpress:6-php8.4` et les variables d'environnement requises
 
-**Variables d'environnement requises** :
-- `WORDPRESS_DB_HOST: mariadb`
-- `WORDPRESS_DB_USER: wordpress`
-- `WORDPRESS_DB_PASSWORD` (depuis le secret)
-- `WORDPRESS_DB_NAME: wordpress`
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  # TODO
+spec:
+  # TODO
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress
+  namespace: wordpress
+  labels:
+    app: wordpress
+spec:
+  ports:
+    - #TODO
+  selector:
+    # TODO
+  type: #TODO
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress
+  namespace: wordpress
+  labels:
+    app: wordpress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wordpress
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: wordpress
+    spec:
+      containers:
+      - image: wordpress:6.3
+        name: wordpress
+        env:
+        - name: WORDPRESS_DB_HOST
+          value: #TODO
+        - name: WORDPRESS_DB_USER
+          value: #TODO
+        - name: WORDPRESS_DB_PASSWORD
+          # TODO
+        - name: WORDPRESS_DB_NAME
+          value: wordpress
+        ports:
+        - containerPort: 80
+          name: wordpress
+        volumeMounts:
+        - name: wordpress-persistent-storage
+          # TODO
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      volumes:
+      - name: wordpress-persistent-storage
+        #TODO
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: wordpress-ingress
+  namespace: wordpress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: wordpress.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: wordpress
+            port:
+              number: 80
+```
+
+Indices : 
+
+- wordpress doit avoir son stockage dans `/var/www/html`
+- l'image n'est peut être pas la bonne ;-\)
 
 ### 3.4 Appliquer les manifests
 
@@ -185,8 +380,12 @@ kubectl get all -n wordpress
 # Redirection de port pour accéder à WordPress
 kubectl port-forward service/wordpress 8080:80 -n wordpress
 
-# Dans un autre terminal, tester l'accès
-curl http://localhost:8080
+# Dans un navigateur, ouvrir l'URL localhost:8080
+# L'installeur de Wordpress devrait apparaitre
+
+# Ou ajouter l'entrée dans /etc/hosts et utiliser l'Ingress
+echo "127.0.0.1 wordpress.local" | sudo tee -a /etc/hosts
+curl -I http://wordpress.local
 ```
 
 ## Partie 4 : Network Policies avec Cilium
@@ -217,9 +416,8 @@ Créez une Network Policy qui autorise uniquement WordPress à se connecter à M
 
 Créez une Network Policy pour WordPress qui autorise :
 
-- Le trafic HTTP entrant (port 80)
+- Le trafic HTTP entrant (port 80) pour l'ingress controller
 - Le trafic sortant vers MariaDB (port 3306)
-- Le trafic sortant vers l'extérieur pour les mises à jour
 
 ### 4.4 Appliquer et tester les Network Policies
 
@@ -229,10 +427,14 @@ kubectl apply -f network-policies.yaml
 
 # Tester la connectivité
 kubectl exec -it deployment/wordpress -n wordpress -- curl mariadb:3306
+# doit renvoyer:
+#    curl: (1) Received HTTP/0.9 when not allowed
+#    command terminated with exit code 1
 
 # Tester depuis un pod non autorisé
-kubectl run test-pod --image=alpine --rm -it -- sh
+kubectl run test-pod --image=nixery.dev/bash/curl --rm -it -- bash
 # Dans le pod : curl mariadb.wordpress.svc.cluster.local:3306
+# Ne doit pas rendre la main, contrairement à wordpress
 ```
 
 ## Partie 5 : Observabilité avec Hubble
@@ -261,24 +463,9 @@ sudo mv hubble /usr/local/bin
 
 ```bash
 # Port-forward pour accéder à Hubble Relay
-cilium hubble port-forward &
+kubectl port-forward -n kube-system svc/hubble-ui 4245:80
 
-# Observer le trafic en temps réel
-hubble observe --namespace wordpress
-
-# Générer du trafic et observer
-curl http://localhost:8080 &
-hubble observe --namespace wordpress --protocol http
-```
-
-### 5.4 Interface Web Hubble
-
-```bash
-# Port-forward pour l'interface web
-kubectl port-forward -n kube-system service/hubble-ui 12000:80 &
-
-# Accéder à l'interface dans votre navigateur
-# http://localhost:12000
+# Observer le trafic en temps réel dans un navigateur (localhost:4245)
 ```
 
 ## Partie 6 : Exploration des Custom Resources
@@ -298,7 +485,13 @@ kubectl get ciliumnetworkpolicies -A
 
 ### 6.2 Créer une CiliumNetworkPolicy avancée
 
-Créez une CiliumNetworkPolicy avec des règles L7 pour HTTP :
+Supprimer la partie Ingress dans la NetworkPolicy existante.
+
+L'ouverture de la page Wordpress doit répondre 
+
+> 504 Gateway Time-out
+
+La remplacer par une CiliumNetworkPolicy avec des règles L7 pour HTTP, qui n'autorise QUE l'ingress controller à réaliser des requêtes GET / POST / HEAD sur wordpress :
 
 ```yaml
 apiVersion: "cilium.io/v2"
@@ -308,8 +501,19 @@ metadata:
   namespace: wordpress
 spec:
   # Votre politique L7 ici
-  # Doit autoriser uniquement les requêtes GET et POST sur WordPress
+  # Doit autoriser uniquement les requêtes GET, POST et HEAD sur WordPress
 ```
+
+**Vérification des règles L7 :**
+
+```bash
+# Tester une méthode autorisée (GET)
+curl -IX GET http://wordpress.local
+
+# Tester une méthode non autorisée (DELETE) - doit être bloquée
+curl -IX DELETE http://wordpress.local
+```
+
 
 ### 6.3 Explorer d'autres Custom Resources
 

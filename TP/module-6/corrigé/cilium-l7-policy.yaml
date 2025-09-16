@@ -1,0 +1,28 @@
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: wordpress-l7-policy
+  namespace: wordpress
+spec:
+  endpointSelector:
+    matchLabels:
+      app: wordpress
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        app.kubernetes.io/name: ingress-nginx
+        app.kubernetes.io/component: controller
+      matchExpressions:
+      - key: k8s:io.kubernetes.pod.namespace
+        operator: In
+        values:
+        - ingress-nginx
+    toPorts:
+    - ports:
+      - port: "80"
+        protocol: TCP
+      rules:
+        http:
+        - method: "GET"
+        - method: "POST"
+        - method: "HEAD"
