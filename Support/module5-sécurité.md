@@ -896,9 +896,91 @@ trivy image --severity HIGH,CRITICAL --exit-code 1 myapp:latest
 - Admission controllers activés
 
 **Audit et traçabilité :**
-- Logs d'audit configurés avec politique appropriée
+- Logs d'**audit** configurés avec politique appropriée
 - Monitoring des accès privilégiés  
 - Alerting sur les actions suspectes
+
+---
+
+## Focus API Server Audit Logging
+
+L'audit Kubernetes capture toutes les requêtes à l'API Server. Attention, ça peut générer beaucoup de logs !!
+
+**4 niveaux d'audit :**
+- **None** : pas d'audit
+- **Metadata** : requête, utilisateur, timestamp (sans le body)
+- **Request** : metadata + request body  
+- **RequestResponse** : metadata + request + response bodies ⚠️
+
+---
+
+## Focus API Server Audit Logging - exemple
+
+```yaml
+# /etc/kubernetes/audit-policy.yaml
+apiVersion: audit.k8s.io/v1
+kind: Policy
+rules:
+- level: Metadata
+  namespaces: ["kube-system", "kube-public"]
+  verbs: ["create", "delete", "patch"]
+- level: Request
+  resources:
+  - group: ""
+    resources: ["secrets", "configmaps"]
+- level: None
+  users: ["system:apiserver", "system:kube-scheduler"]
+```
+
+---
+
+## Activation de l'audit logging
+
+```yaml
+# /etc/kubernetes/manifests/kube-apiserver.yaml
+...
+  - command:
+    - kube-apiserver
+    - --audit-log-path=/var/log/kubernetes/audit.log
+    - --audit-policy-file=/etc/kubernetes/audit-policy.yaml
+    - --audit-log-maxage=30
+    - --audit-log-maxbackup=10
+    - --audit-log-maxsize=100
+...
+```
+
+---
+
+## Analyse des logs d'audit
+```json
+{
+  "kind": "Event",
+  "apiVersion": "audit.k8s.io/v1",
+  "level": "Request",
+  "auditID": "8a4c5c7e-7b9f-4c8d-9e6f-1a2b3c4d5e6f",
+  "stage": "ResponseStarted",
+  "requestURI": "/api/v1/namespaces/default/secrets",
+  "verb": "create",
+  "user": {
+    "username": "alice@company.com",
+    "groups": ["developers"]
+  },
+  "sourceIPs": ["10.0.0.5"],
+  "userAgent": "kubectl/v1.33.0",
+  "objectRef": {
+    "resource": "secrets",
+    "namespace": "default",
+    "name": "app-secret"
+  },
+  "requestReceivedTimestamp": "2024-03-15T10:30:45.123456Z"                                                 
+}
+```
+
+**Analyse avec des outils** :
+- **jq** : `cat audit.log | jq '.user.username' | sort | uniq -c`
+- **Falco** : détection de patterns suspects
+- **ELK Stack** : indexation et dashboards
+- **Grafana + Loki** : visualisation moderne
 
 ---
 
@@ -908,6 +990,29 @@ trivy image --severity HIGH,CRITICAL --exit-code 1 myapp:latest
 - Vérification régulière avec CIS Kubernetes Benchmark (Kube-bench)
 - Scan de sécurité automatisé (Polaris, Trivy)
 - Documentation des configurations de sécurité
+
+---
+
+## CIS Kubernetes Benchmark avec Kube-bench
+
+**Center for Internet Security (CIS)** = standards de sécurité
+
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/aquasecurity/kube-bench/main/job.yaml
+```
+
+**Exemple de sortie** :
+```
+[INFO] 1 Control Plane Security Configuration
+[PASS] 1.1.1 Ensure that the API server pod specification file permissions are set to 644 or more restrictive
+[FAIL] 1.1.2 Ensure that the API server pod specification file ownership is set to root:root
+[WARN] 1.1.3 Ensure that the controller manager pod specification file permissions are set to 644 or more restrictive
+
+== Remediations control-plane ==
+1.1.2 Run the below command on the control plane node:
+chown root:root /etc/kubernetes/manifests/kube-apiserver.yaml
+```
 
 ---
 
