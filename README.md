@@ -18,7 +18,10 @@ Formation complète Kubernetes avec supports de cours et travaux pratiques pour 
 - **Module 7** : Helm et Kustomize pour l'industrialisation *(en cours de rédaction)*
 - **Module 8** : GitOps et déploiement continu avec Argo CD *(en cours de rédaction)*
 
-> **Note** : Les modules 7 et 8 sont actuellement en cours d'écriture. Ils seront progressivement finalisés et rajoutés dans `Support/` et les dossiers *travaux pratiques* associés.
+**Gestion des Kubernetes non managés**
+- **Module 9** : Opérations avancées et administration du Control Plane *(en cours de rédaction)*
+
+> **Note** : Les modules 7, 8 et 9 sont actuellement en cours d'écriture. Ils seront progressivement finalisés et rajoutés dans `Support/` et les dossiers *travaux pratiques* associés.
 
 ## Structure du projet
 

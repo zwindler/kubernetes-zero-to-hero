@@ -66,8 +66,10 @@ ul {
 - CEL (Common Expression Language)
 - Politiques Kyverno, détection de menaces
 
-**Partie 4 : bonnes pratiques diverses**
+**Partie 4 : bonnes pratiques, audit et conformité**
 - Container security, cluster hardening
+- API Server audit logging et conformité CIS
+- Outils de conformité et automatisation
 
 ---
 
@@ -857,7 +859,7 @@ trivy image --severity HIGH,CRITICAL --exit-code 1 myapp:latest
 
 <!-- _class: lead -->
 
-# Partie 4: Bonnes pratiques
+# Partie 4: Bonnes pratiques, audit et conformité
 
 ---
 
@@ -873,7 +875,7 @@ trivy image --severity HIGH,CRITICAL --exit-code 1 myapp:latest
 
 ---
 
-## Bonnes pratiques pour les clusters (1/2)
+## Bonnes pratiques pour les clusters (1/3)
 
 **Réseau :**
 - Network Policies (vu dans le module suivant)
@@ -882,17 +884,30 @@ trivy image --severity HIGH,CRITICAL --exit-code 1 myapp:latest
 
 **Nodes :**
 - OS minimaliste immutables ([Talos Linux](https://www.talos.dev/)) **ou** hardening (CIS bench)
-- modules de sécurité Kernel (AppArmor, SELinux)
--mMise à jour régulières
+- Modules de sécurité Kernel (AppArmor, SELinux)
+- Mise à jour régulières
 
 ---
 
-## Bonnes pratiques pour les clusters (2/2)
+## Bonnes pratiques pour les clusters (2/3)
 
 **Control plane :**
 - etcd encryption at rest
-- API server audit logging activé (et surveillé !)
 - Admission controllers activés
+
+**Audit et traçabilité :**
+- Logs d'audit configurés avec politique appropriée
+- Monitoring des accès privilégiés  
+- Alerting sur les actions suspectes
+
+---
+
+## Bonnes pratiques pour les clusters (3/3)
+
+**Conformité :**
+- Vérification régulière avec CIS Kubernetes Benchmark (Kube-bench)
+- Scan de sécurité automatisé (Polaris, Trivy)
+- Documentation des configurations de sécurité
 
 ---
 
@@ -951,6 +966,8 @@ trivy image --severity HIGH,CRITICAL --exit-code 1 myapp:latest
 - [Falco](https://falco.org/) : Détection de menaces
 - [Trivy](https://trivy.dev/) : Scan de vulnérabilités
 - [kubebench](https://github.com/aquasecurity/kube-bench) : CIS benchmark pour K8s
+- [kube-hunter](https://github.com/aquasecurity/kube-hunter) : Pentest automatisé
+- [Polaris](https://polaris.docs.fairwinds.com/) : Audit continu des ressources
 
 ---
 
