@@ -602,29 +602,134 @@ Solutions d'agrégation de *logs* :
 
 ---
 
-## Backends pour les traces distribuées
+## Le tracing **distribué**
 
+Suit le parcours d'une requête à travers tous les services :
 
-Suivre une requête utilisateur à travers tous les microservices (et les fonctions d'un même microservice) pour identifier les goulots d'étranglement.
+```
+[Frontend] → [API Gateway] → [Auth Service] → [Database]
+     ↓             ↓              ↓              ↓
+    5ms          12ms          45ms           230ms
+```
 
-Solutions de collecte de *traces* :
+- **Trace** : parcours complet d'une requête
+- **Span** : opération unitaire dans un service
+- **Context** : métadonnées partagées entre spans
 
-- **[Jaeger](https://www.jaegertracing.io/)** : CNCF graduated
-- **[Zipkin](https://zipkin.io/)** : Historique, compatible avec Jaeger
-- **[Tempo](https://grafana.com/oss/tempo/)** : Backend Grafana Labs pour les traces
-
+**Cas d'usage :** debug de latences, optimisation performances, identification des goulots d'étranglement
 
 ---
 
-## OpenTelemetry : le standard unifié
+## Anatomie d'une trace distribuée
 
-**OpenTelemetry** unifie la collecte des 3 types de télémétrie :
+```
+Trace ID: abc123def456
+├── Span: HTTP Request [Frontend] (290ms total)
+│   ├── Span: Auth Check [API Gateway] (50ms)
+│   │   └── Span: JWT Validation [Auth Service] (45ms)
+│   │       └── Span: Database Query [Database] (230ms)                            
+│   └── Span: Response Processing [Frontend] (15ms)
+```
 
-TODO je vais faire un schéma pour expliquer tout ça
+**Métadonnées importantes :**
+- **Timestamps** : début/fin de chaque opération
+- **Tags** : métadonnées comme `http.method=GET`, `user.id=123`
+- **Logs** : événements ponctuels dans un span
+- **Baggage** : données propagées entre services
 
-Otel (abréviation usuelle) est le standard de facto, permet d'avoir SDK unique dans le code tout en offrant la flexibilité des backends de stockage.
+---
+
+## OpenTelemetry : l'instrumentation moderne
+
+**OpenTelemetry** (OTel) = standard unifié pour collecter métriques, logs et traces :
+
+- **SDK** : librairies pour instrumenter le code
+- **Collector** : pipeline de traitement des données
+- **Auto-instrumentation** : zero-code pour frameworks populaires
+- **Vendor-neutral** : compatible avec tous les backends
+
+**Architecture :**
+```
+[Application] → [OTel SDK] → [OTel Collector] → [Backend (Tempo/Jaeger)]
+```
 
 Plus d'infos : [opentelemetry.io](https://opentelemetry.io/)
+
+---
+
+## OpenTelemetry Collector : le hub central
+
+```yaml
+# Configuration simplifiée
+receivers:
+  otlp:  # Reçoit les données depuis les SDKs
+    protocols: [grpc, http]
+  jaeger:  # Compatibilité Jaeger
+    protocols: [grpc]
+
+processors:
+  batch: {}  # Optimise l'envoi par batch
+  memory_limiter: {}  # Limite la consommation
+
+exporters:
+  tempo:  # Envoi vers Tempo
+    endpoint: tempo.monitoring.svc:4317
+  jaeger:  # Ou vers Jaeger
+    endpoint: jaeger.monitoring.svc:14250                                       
+```
+
+---
+
+## Auto-instrumentation avec l'Operator
+
+```yaml
+# Installation operator
+kubectl apply -f https://github.com/open-telemetry/opentelemetry-operator/releases/\
+latest/download/opentelemetry-operator.yaml
+
+# Auto-instrumentation Java
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: java-instrumentation
+spec:
+  exporter:
+    endpoint: http://otel-collector:4317
+  propagators: [tracecontext, baggage]
+  sampler: 
+    type: parentbased_traceidratio
+    argument: "0.1"  # 10% sampling
+```
+
+---
+
+## Activer l'auto-instrumentation sur vos Pods
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+spec:
+  template:
+    metadata:
+      annotations:
+        # Auto-instrumentation par langage
+        instrumentation.opentelemetry.io/inject-java: "true"
+        instrumentation.opentelemetry.io/inject-python: "true"
+        instrumentation.opentelemetry.io/inject-nodejs: "true"
+        instrumentation.opentelemetry.io/inject-dotnet: "true"
+```
+
+---
+
+## Backends pour le stockage des traces
+
+| Backend | Points forts | Cas d'usage |
+|---------|-------------|-------------|
+| **[Jaeger](https://www.jaegertracing.io/)** | CNCF graduated, UI riche | Projet CNCF |
+| **[Tempo](https://grafana.com/oss/tempo/)** | Intégration Grafana, performance | Ecosystème Grafana parfaitement intégré |
+| **[Zipkin](https://zipkin.io/)** | Léger, simple |  |
 
 ---
 
