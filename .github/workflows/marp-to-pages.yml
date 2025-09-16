@@ -138,22 +138,22 @@ jobs:
               filename=$(basename "$file" .html)
               case "$filename" in
                 module1*)
-                  description="Introduction aux conteneurs et Docker"
+                  description="Les Fondamentaux - Les Conteneurs et Docker"
                   ;;
                 module2*)
-                  description="Architecture et concepts de base Kubernetes"
+                  description="Comprendre Kubernetes - Architecture et composants internes"
                   ;;
                 module3*)
-                  description="Pods, Deployments, Services et ressources fondamentales"
+                  description="Ressources de base - Les objets essentiels de Kubernetes"
                   ;;
                 module4*)
-                  description="Administration, monitoring et observabilité"
+                  description="Gestion du cycle de vie des applications"
                   ;;
                 module5*)
-                  description="CNI et CSI - réseau avec Cilium, stockage avec Rook Ceph"
+                  description="Sécurité dans Kubernetes"
                   ;;
                 module6*)
-                  description="RBAC, Kyverno, Falco et bonnes pratiques de sécurité"
+                  description="CRI, CNI, CSI, extensibilité de Kubernetes"
                   ;;
                 module7*)
                   description="Helm et Kustomize pour l'industrialisation"
