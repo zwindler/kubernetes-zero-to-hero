@@ -99,7 +99,7 @@ Installer l'Ingress Controller NGINX pour kind
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
 ```
 
-Patcher le NodePort pour que le port HTTP non sécurisé soit le 30080 et le HTTPS soit le 30443
+Patcher le NodePort pour que le port HTTP non sécurisé soit le 30080 et le HTTPS soit le 30443 (pour être cohérent avec la configuration "kind") :
 
 ```bash
 # Patcher le service ingress-nginx-controller pour fixer les ports NodePort
